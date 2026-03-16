@@ -41,7 +41,7 @@ export default [
       // React Refresh rules
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        { allowConstantExport: true, allowExportNames: ['buttonVariants'] },
       ],
 
       // React rules

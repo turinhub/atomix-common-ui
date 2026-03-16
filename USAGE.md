@@ -74,6 +74,10 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  TableHeader as DataTableHeader,
+  TablePagination as DataTablePagination,
+} from '@turinhub/atomix-common-ui';
 
 import type {
   UIComponents,
@@ -100,6 +104,8 @@ export const dataTableUI: UIComponents = {
   DropdownMenuItem,
   DropdownMenuSeparator,
   Skeleton,
+  TableHeaderComponent: DataTableHeader,
+  TablePaginationComponent: DataTablePagination,
 };
 
 // DeleteConfirmDialog 的 UI 组件
@@ -281,16 +287,39 @@ export const dataTableUI: UIComponents = {
 | `onConfirm` | `() => void` | ✅ | 确认回调 |
 | `verification` | `object` | ❌ | 验证配置 |
 
+## 🛠️ 工具函数
+
+### cn
+
+`cn` 函数是一个用于合并 className 的工具函数，基于 `clsx` 和 `tailwind-merge`。
+
+```typescript
+import { cn } from '@turinhub/atomix-common-ui';
+
+// 合并多个 className
+cn('px-4 py-2', 'bg-blue-500');
+
+// 条件 className
+cn('base-class', isActive && 'active-class', isError && 'error-class');
+
+// 合并 Tailwind 类（自动去重）
+cn('px-4 py-2 bg-blue-500', 'px-2 bg-red-500');
+// 结果: 'py-2 bg-red-500' (px-2 覆盖 px-4)
+```
+
 ## 🔧 类型导出
 
 所有 UI 组件的类型都已导出，用于类型约束：
 
 ```typescript
 import type {
-  ButtonProps,
-  InputProps,
-  DialogProps,
-  // ... 其他类型
+  UIComponent,
+  ButtonComponent,
+  InputComponent,
+  CardComponent,
+  TableComponent,
+  DialogComponent,
+  LabelComponent,
 } from '@turinhub/atomix-common-ui';
 ```
 

@@ -9,7 +9,7 @@ const createMockComponents = () => ({
     <input
       data-testid="search-input"
       value={value}
-      onChange={(e) => onChange?.(e.target.value)}
+      onChange={onChange}
       placeholder={placeholder}
     />
   ),
@@ -65,7 +65,6 @@ describe('TableHeader', () => {
     const input = screen.getByTestId('search-input');
     await user.type(input, 'test');
 
-    // Test onChange
     expect(onSearchChange).toHaveBeenCalled();
   });
 

@@ -10,13 +10,13 @@ const createMockComponents = () => ({
       {children}
     </button>
   ),
-  Select: ({ children, onValueChange }: any) => (
-    <div data-testid="select">{children}</div>
-  ),
+  Select: ({ children }: any) => <div data-testid="select">{children}</div>,
   SelectTrigger: ({ children }: any) => <div>{children}</div>,
   SelectContent: ({ children }: any) => <div>{children}</div>,
   SelectItem: ({ children, value, onClick }: any) => (
-    <div onClick={onClick} data-value={value}>{children}</div>
+    <button onClick={onClick} data-value={value} type="button">
+      {children}
+    </button>
   ),
   SelectValue: ({ placeholder }: any) => <div>{placeholder}</div>,
 });
@@ -51,9 +51,7 @@ describe('TablePagination', () => {
       />
     );
 
-    // The pagination text is split into multiple elements
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('页')).toBeInTheDocument();
+    expect(screen.getByText('第 3 页，共 10 页')).toBeInTheDocument();
   });
 
   it('应该禁用上一页按钮在第一页', () => {
@@ -62,16 +60,15 @@ describe('TablePagination', () => {
     render(
       <TablePagination
         components={mockComponents}
-        currentPage={1}
+        currentPage={0}
         pageSize={10}
         total={100}
         onPageChange={vi.fn()}
       />
     );
 
-    // Mock buttons don't have disabled state, just verify button exists
     const prevButton = screen.getByText('上一页');
-    expect(prevButton).toBeInTheDocument();
+    expect(prevButton).toBeDisabled();
   });
 
   it('应该触发页码变化', async () => {
