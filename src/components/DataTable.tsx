@@ -1,5 +1,3 @@
-'use client';
-
 import { ReactNode } from 'react';
 import type { TableHeaderProps } from './TableHeader';
 import type { TablePaginationProps } from './TablePagination';
