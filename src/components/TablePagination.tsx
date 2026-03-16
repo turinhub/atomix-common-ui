@@ -1,13 +1,22 @@
+import type {
+  ButtonComponent,
+  SelectComponent,
+  SelectTriggerComponent,
+  SelectContentComponent,
+  SelectItemComponent,
+  SelectValueComponent,
+} from '../types/component-types';
+
 /**
  * UI 组件适配器接口
  */
 export interface PaginationUIComponents {
-  Button: React.ComponentType<any>;
-  Select: React.ComponentType<any>;
-  SelectTrigger: React.ComponentType<any>;
-  SelectContent: React.ComponentType<any>;
-  SelectItem: React.ComponentType<any>;
-  SelectValue: React.ComponentType<any>;
+  Button: ButtonComponent;
+  Select: SelectComponent;
+  SelectTrigger: SelectTriggerComponent;
+  SelectContent: SelectContentComponent;
+  SelectItem: SelectItemComponent;
+  SelectValue: SelectValueComponent;
 }
 
 export interface TablePaginationProps {

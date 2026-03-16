@@ -12,3 +12,14 @@ export type { Column, DataTableProps, UIComponents } from './components/DataTabl
 export type { DeleteConfirmDialogProps, DialogUIComponents } from './components/DeleteConfirmDialog';
 export type { TableHeaderProps, HeaderUIComponents } from './components/TableHeader';
 export type { TablePaginationProps, PaginationUIComponents } from './components/TablePagination';
+
+// Component Types
+export type {
+  UIComponent,
+  ButtonComponent,
+  InputComponent,
+  CardComponent,
+  TableComponent,
+  DialogComponent,
+  LabelComponent,
+} from './types/component-types';

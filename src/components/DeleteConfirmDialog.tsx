@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
+import type {
+  ButtonComponent,
+  InputComponent,
+  LabelComponent,
+  DialogComponent,
+  DialogContentComponent,
+  DialogHeaderComponent,
+  DialogFooterComponent,
+  DialogTitleComponent,
+  DialogDescriptionComponent,
+} from '../types/component-types';
 
 /**
  * UI 组件适配器接口
  */
 export interface DialogUIComponents {
-  Dialog: React.ComponentType<any>;
-  DialogContent: React.ComponentType<any>;
-  DialogHeader: React.ComponentType<any>;
-  DialogFooter: React.ComponentType<any>;
-  DialogTitle: React.ComponentType<any>;
-  DialogDescription: React.ComponentType<any>;
-  Button: React.ComponentType<any>;
-  Input: React.ComponentType<any>;
-  Label: React.ComponentType<any>;
+  Dialog: DialogComponent;
+  DialogContent: DialogContentComponent;
+  DialogHeader: DialogHeaderComponent;
+  DialogFooter: DialogFooterComponent;
+  DialogTitle: DialogTitleComponent;
+  DialogDescription: DialogDescriptionComponent;
+  Button: ButtonComponent;
+  Input: InputComponent;
+  Label: LabelComponent;
 }
 
 export interface DeleteConfirmDialogProps {
@@ -54,6 +65,13 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   const [inputValue, setInputValue] = useState('');
 
+  // Reset input when dialog opens/closes or target value changes
+  useEffect(() => {
+    if (open) {
+      setInputValue('');
+    }
+  }, [open, verification?.targetValue]);
+
   if (!components) {
     return (
       <div className="p-4 text-center text-destructive">
@@ -73,13 +91,6 @@ export function DeleteConfirmDialog({
     Input,
     Label,
   } = components;
-
-  // Reset input when dialog opens/closes or target value changes
-  useEffect(() => {
-    if (open) {
-      setInputValue('');
-    }
-  }, [open, verification?.targetValue]);
 
   const isConfirmDisabled = verification
     ? inputValue !== verification.targetValue

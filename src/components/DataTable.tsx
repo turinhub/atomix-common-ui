@@ -1,6 +1,16 @@
 import { ReactNode } from 'react';
+import type { HTMLAttributes, ButtonHTMLAttributes } from 'react';
+
 import type { TableHeaderProps } from './TableHeader';
 import type { TablePaginationProps } from './TablePagination';
+import type {
+  UIComponent,
+  ButtonComponent,
+  CardComponent,
+  TableComponent,
+  TableRowComponent,
+  TableCellComponent,
+} from '../types/component-types';
 
 type ColumnKey<T> = Extract<keyof T, string>;
 
@@ -22,10 +32,10 @@ type ActionSeparatorItem = {
 
 type ActionItem<T> = ActionMenuItem<T> | ActionSeparatorItem;
 
-export interface Column<T = any> {
-  key: ColumnKey<T> | string;
+export interface Column<T = unknown> {
+  key: ColumnKey<T>;
   title: ReactNode;
-  render?: (value: any, record: T, index: number) => ReactNode;
+  render?: (value: T[ColumnKey<T>], record: T, index: number) => ReactNode;
   width?: string;
   align?: 'left' | 'center' | 'right';
 }
@@ -35,27 +45,29 @@ export interface Column<T = any> {
  * 业务项目应该传入自己项目中的 shadcn/ui 组件
  */
 export interface UIComponents {
-  Card: React.ComponentType<any>;
-  CardContent: React.ComponentType<any>;
-  CardFooter: React.ComponentType<any>;
-  Table: React.ComponentType<any>;
-  TableBody: React.ComponentType<any>;
-  TableCell: React.ComponentType<any>;
-  TableHead: React.ComponentType<any>;
-  TableHeader: React.ComponentType<any>;
-  TableRow: React.ComponentType<any>;
-  Button: React.ComponentType<any>;
-  DropdownMenu: React.ComponentType<any>;
-  DropdownMenuTrigger: React.ComponentType<any>;
-  DropdownMenuContent: React.ComponentType<any>;
-  DropdownMenuItem: React.ComponentType<any>;
-  DropdownMenuSeparator: React.ComponentType<any>;
-  Skeleton: React.ComponentType<any>;
-  TableHeaderComponent: React.ComponentType<any>; // TableHeader 业务组件
-  TablePaginationComponent: React.ComponentType<any>; // TablePagination 业务组件
+  Card: CardComponent;
+  CardContent: UIComponent<HTMLAttributes<HTMLDivElement>>;
+  CardFooter: UIComponent<HTMLAttributes<HTMLDivElement>>;
+  Table: TableComponent;
+  TableBody: UIComponent<HTMLAttributes<HTMLTableSectionElement>>;
+  TableCell: TableCellComponent;
+  TableHead: TableCellComponent;
+  TableHeader: UIComponent<HTMLAttributes<HTMLTableSectionElement>>;
+  TableRow: TableRowComponent;
+  Button: ButtonComponent;
+  DropdownMenu: UIComponent<HTMLAttributes<HTMLDivElement>>;
+  DropdownMenuTrigger: ButtonComponent;
+  DropdownMenuContent: UIComponent<HTMLAttributes<HTMLDivElement> & { align?: 'start' | 'end' | 'center' }>;
+  DropdownMenuItem: UIComponent<ButtonHTMLAttributes<HTMLDivElement> & {
+    onClick?: (e: React.MouseEvent) => void;
+  }>;
+  DropdownMenuSeparator: UIComponent;
+  Skeleton: UIComponent<HTMLAttributes<HTMLDivElement>>;
+  TableHeaderComponent: React.ComponentType<TableHeaderProps>;
+  TablePaginationComponent: React.ComponentType<TablePaginationProps>;
 }
 
-export interface DataTableProps<T = any> {
+export interface DataTableProps<T = unknown> {
   // 数据相关
   data: T[];
   loading?: boolean;
@@ -327,9 +339,9 @@ export function DataTable<T extends Record<string, any>>({
               {...rowProps}
             >
               {columns.map(column => {
-                const value = record[column.key];
+                const value = record[column.key as keyof T];
                 const content = column.render
-                  ? column.render(value, record, index)
+                  ? column.render(value as T[ColumnKey<T>], record, index)
                   : value;
 
                 return (

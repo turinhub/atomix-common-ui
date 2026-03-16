@@ -1,0 +1,45 @@
+# Source files
+src/
+*.ts
+*.tsx
+!dist/**/*.d.ts
+
+# Config files
+*.config.js
+*.config.ts
+.eslintrc*
+.prettierrc*
+postcss.config.js
+
+# Development
+.github/
+.vscode/
+.idea/
+*.log
+coverage/
+*.local
+
+# Documentation
+*.md
+!README.md
+!USAGE.md
+!CHANGELOG.md
+!LICENSE
+
+# Testing
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+vitest.config.ts
+src/test/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+.env*
+.env.*.local
+playground/
+example.tsx
+Design.md

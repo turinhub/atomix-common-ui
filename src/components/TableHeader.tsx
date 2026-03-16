@@ -1,11 +1,12 @@
 import { ReactNode } from 'react';
+import type { InputComponent, ButtonComponent } from '../types/component-types';
 
 /**
  * UI 组件适配器接口
  */
 export interface HeaderUIComponents {
-  Input: React.ComponentType<any>;
-  Button: React.ComponentType<any>;
+  Input: InputComponent;
+  Button: ButtonComponent;
 }
 
 export interface TableHeaderProps {
