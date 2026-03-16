@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.pnpm-store
+
+# Testing
+coverage
+coverage-final.json
+
+# Production
+dist
+dist-playground
+playground-dist
+build
+
+# Misc
+.DS_Store
+*.pem
+*.log
+.eslintcache
+.stylelintcache
+.cache
+.temp
+.tmp
+tmp
+.env.local
+.env.*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.stackdump
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Turbo
+.turbo
+
+# TypeScript
+*.tsbuildinfo
+
+# Vibe Coding
+.claude
