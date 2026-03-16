@@ -1,8 +1,6 @@
 import { ReactNode } from 'react';
 import type { HTMLAttributes, ButtonHTMLAttributes } from 'react';
 
-import type { TableHeaderProps } from './TableHeader';
-import type { TablePaginationProps } from './TablePagination';
 import type {
   UIComponent,
   ButtonComponent,
@@ -11,6 +9,9 @@ import type {
   TableRowComponent,
   TableCellComponent,
 } from '../types/component-types';
+
+import type { TableHeaderProps } from './TableHeader';
+import type { TablePaginationProps } from './TablePagination';
 
 type ColumnKey<T> = Extract<keyof T, string>;
 
