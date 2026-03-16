@@ -102,6 +102,8 @@ import { dataTableUI } from '@/lib/ui-adapter';
 - **DeleteConfirmDialog** - 删除确认对话框
 - **TableHeader** - 表格头部（支持搜索和操作按钮）
 - **TablePagination** - 分页组件
+- **ThemeSwitcher** - 主题切换组件（完整版，支持下拉菜单）
+- **ThemeSwitcherContent** - 主题切换内容组件（轻量版，可嵌入）
 
 ## 📁 项目结构
 
@@ -163,6 +165,11 @@ import type {
   HeaderUIComponents,
   TablePaginationProps,
   PaginationUIComponents,
+  ThemeSwitcherProps,
+  ThemeSwitcherUIComponents,
+  ThemeSwitcherContentProps,
+  ThemeSwitcherContentUIComponents,
+  ThemeOption,
 } from '@turinhub/atomix-common-ui';
 ```
 

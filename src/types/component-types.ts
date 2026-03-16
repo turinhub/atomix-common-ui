@@ -116,3 +116,29 @@ export type DialogTitleComponent = UIComponent<
 export type DialogDescriptionComponent = UIComponent<
   HTMLAttributes<HTMLParagraphElement> & { asChild?: boolean }
 >;
+
+/**
+ * DropdownMenu 组件类型
+ */
+export type DropdownMenuComponent = UIComponent<{
+  children?: React.ReactNode;
+}>;
+
+export type DropdownMenuTriggerComponent = UIComponent<
+  ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>;
+
+export type DropdownMenuContentComponent = UIComponent<
+  HTMLAttributes<HTMLDivElement>
+>;
+
+export type DropdownMenuRadioGroupComponent = UIComponent<{
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children?: React.ReactNode;
+}>;
+
+export type DropdownMenuRadioItemComponent = UIComponent<{
+  value: string;
+  children?: React.ReactNode;
+}>;

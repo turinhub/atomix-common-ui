@@ -273,15 +273,15 @@ export const dataTableUI: UIComponents = {
 
 ### DeleteConfirmDialog
 
-| Prop           | 类型                      | 必填 | 说明          |
-| -------------- | ------------------------- | ---- | ------------- |
-| `components`   | `DialogUIComponents`      | ✅   | UI 组件适配器 |
-| `open`         | `boolean`                 | ✅   | 是否打开      |
-| `onOpenChange` | `(open: boolean) => void` | ✅   | 打开状态变化  |
-| `title`        | `ReactNode`               | ✅   | 标题          |
-| `description`  | `ReactNode`               | ✅   | 描述          |
-| `onConfirm`    | `() => void`              | ✅   | 确认回调      |
-| `verification` | `object`                  | ❌   | 验证配置      |
+| Prop           | 类型                      | 必填 | 说明           |
+| -------------- | ------------------------- | ---- | -------------- |
+| `components`   | `DialogUIComponents`      | ✅   | UI 组件适配器  |
+| `open`         | `boolean`                 | ✅   | 是否打开       |
+| `onOpenChange` | `(open: boolean) => void` | ✅   | 打开状态变化   |
+| `title`        | `ReactNode`               | ✅   | 标题           |
+| `description`  | `ReactNode`               | ✅   | 描述           |
+| `onConfirm`    | `() => void`              | ✅   | 确认回调       |
+| `verification` | `object`                  | ❌   | 验证配置       |
 | `loadingIcon`  | `ReactNode`               | ❌   | 自定义加载图标 |
 
 ## 🛠️ 工具函数

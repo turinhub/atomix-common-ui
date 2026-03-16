@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Monitor, Moon, Sun } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { DataTable, type Column } from '../src/components/DataTable';
 import { DeleteConfirmDialog } from '../src/components/DeleteConfirmDialog';
 import { TableHeader as BusinessTableHeader } from '../src/components/TableHeader';
 import { TablePagination as BusinessTablePagination } from '../src/components/TablePagination';
+import { ThemeSwitcher } from '../src/components/ThemeSwitcher';
+import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
 import { Button } from '../src/components/ui/button';
 import {
   Card,
@@ -27,6 +31,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../src/components/ui/dropdown-menu';
@@ -71,8 +77,32 @@ const baseSnapshotProducts = [
   { name: 'Dialog', status: 'Ready', owner: 'Platform' },
 ];
 
+const themeOptions = [
+  { value: 'light', label: '浅色', icon: <Sun className="h-4 w-4" /> },
+  { value: 'dark', label: '深色', icon: <Moon className="h-4 w-4" /> },
+  { value: 'system', label: '跟随系统', icon: <Monitor className="h-4 w-4" /> },
+] as const;
+type ThemeMode = (typeof themeOptions)[number]['value'];
+
+const themeIcons = themeOptions.reduce(
+  (acc, option) => {
+    acc[option.value] = option.icon;
+    return acc;
+  },
+  {} as Record<ThemeMode, React.ReactNode>
+);
+const themeLabels = themeOptions.reduce(
+  (acc, option) => {
+    acc[option.value] = option.label;
+    return acc;
+  },
+  {} as Record<ThemeMode, string>
+);
+const isThemeMode = (value: string): value is ThemeMode =>
+  themeOptions.some((option) => option.value === value);
+
 export default function App() {
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>('system');
   const [showShortcuts, setShowShortcuts] = useState(true);
   const [showBeta, setShowBeta] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -82,8 +112,27 @@ export default function App() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [isDark]);
+    const updateTheme = () => {
+      let resolvedTheme = theme;
+      if (theme === 'system') {
+        resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)')
+          .matches
+          ? 'dark'
+          : 'light';
+      }
+      const isDarkMode = resolvedTheme === 'dark';
+      document.documentElement.classList.toggle('dark', isDarkMode);
+    };
+
+    updateTheme();
+
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handler = () => updateTheme();
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, [theme]);
 
   const filteredProducts = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
@@ -156,6 +205,23 @@ export default function App() {
       }}
     />
   );
+  const dropdownMenuAdapter: React.ComponentType<
+    React.HTMLAttributes<HTMLDivElement>
+  > = ({ children }) => <DropdownMenu>{children}</DropdownMenu>;
+  const dropdownMenuItemAdapter: React.ComponentType<
+    React.ButtonHTMLAttributes<HTMLDivElement> & {
+      onClick?: (e: React.MouseEvent) => void;
+    }
+  > = ({ children, className, onClick }) => (
+    <DropdownMenuItem className={className} onClick={onClick}>
+      {children}
+    </DropdownMenuItem>
+  );
+  const handleThemeChange = useCallback((value: string) => {
+    if (isThemeMode(value)) {
+      setTheme(value);
+    }
+  }, []);
 
   const glassCard =
     'border border-slate-200/80 bg-white/82 backdrop-blur-xl shadow-[0_18px_46px_rgba(15,23,42,0.12)] dark:border-white/15 dark:bg-slate-900/58 dark:shadow-[0_0_0_1px_rgba(56,189,248,0.08),0_22px_70px_rgba(2,8,23,0.62)]';
@@ -180,13 +246,36 @@ export default function App() {
               本地样式测试页，用于快速验证组件视觉与交互。
             </p>
           </div>
-          <Button
-            variant={isDark ? 'secondary' : 'outline'}
-            className="border-cyan-500/35 bg-white/80 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-200/40 dark:bg-slate-900/30 dark:text-cyan-100 dark:hover:bg-slate-800/70"
-            onClick={() => setIsDark((value) => !value)}
-          >
-            {isDark ? '切换浅色' : '切换深色'}
-          </Button>
+          <div className="flex items-center gap-3 rounded-2xl border border-cyan-500/20 bg-white/75 px-3 py-2 shadow-[0_8px_30px_rgba(8,145,178,0.16)] backdrop-blur-xl dark:border-cyan-300/25 dark:bg-slate-900/55 dark:shadow-[0_10px_35px_rgba(2,132,199,0.2)]">
+            <ThemeSwitcher
+              value={theme}
+              onValueChange={handleThemeChange}
+              components={{
+                DropdownMenu,
+                DropdownMenuTrigger,
+                DropdownMenuContent,
+                DropdownMenuRadioGroup,
+                DropdownMenuRadioItem,
+                Button,
+              }}
+              themeIcons={themeIcons}
+              triggerVariant="outline"
+              triggerSize="sm"
+              triggerClassName="border-cyan-500/35 bg-white/80 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-200/40 dark:bg-slate-900/35 dark:text-cyan-100 dark:hover:bg-slate-800/70"
+              triggerContent={
+                <span className="inline-flex items-center gap-2 font-medium">
+                  <span className="bg-cyan-500/12 rounded-md p-1 text-cyan-700 dark:text-cyan-200">
+                    {themeIcons[theme]}
+                  </span>
+                  <span>主题</span>
+                </span>
+              }
+              showCurrentIcon={false}
+            />
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              {themeLabels[theme]}
+            </span>
+          </div>
         </div>
 
         <Card className={`rounded-3xl ${glassCard}`}>
@@ -271,17 +360,10 @@ export default function App() {
                 TableHeader,
                 TableRow,
                 Button,
-                DropdownMenu: DropdownMenu as unknown as React.ComponentType<
-                  React.HTMLAttributes<HTMLDivElement>
-                >,
+                DropdownMenu: dropdownMenuAdapter,
                 DropdownMenuTrigger,
                 DropdownMenuContent,
-                DropdownMenuItem:
-                  DropdownMenuItem as unknown as React.ComponentType<
-                    React.ButtonHTMLAttributes<HTMLDivElement> & {
-                      onClick?: (e: React.MouseEvent) => void;
-                    }
-                  >,
+                DropdownMenuItem: dropdownMenuItemAdapter,
                 DropdownMenuSeparator,
                 Skeleton,
                 TableHeaderComponent: tableHeaderAdapter,
@@ -349,6 +431,91 @@ export default function App() {
                         <SelectItem value="viewer">Viewer</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    ThemeSwitcher
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    主题切换组件（完整版）
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-700/60 dark:bg-slate-900/45">
+                    <ThemeSwitcher
+                      value={theme}
+                      onValueChange={handleThemeChange}
+                      components={{
+                        DropdownMenu,
+                        DropdownMenuTrigger,
+                        DropdownMenuContent,
+                        DropdownMenuRadioGroup,
+                        DropdownMenuRadioItem,
+                        Button,
+                      }}
+                      themeIcons={themeIcons}
+                      triggerVariant="outline"
+                      triggerSize="sm"
+                      triggerClassName="border-cyan-500/30 bg-white text-slate-700 hover:bg-cyan-50 dark:border-cyan-300/35 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:bg-slate-800"
+                      triggerContent={
+                        <span className="inline-flex items-center gap-2">
+                          <span className="bg-cyan-500/12 rounded-md p-1 text-cyan-700 dark:text-cyan-200">
+                            {themeIcons[theme]}
+                          </span>
+                          <span className="text-sm font-medium">切换主题</span>
+                        </span>
+                      }
+                      showCurrentIcon={false}
+                    />
+                    <span className="inline-flex items-center gap-2 rounded-full bg-cyan-500/10 px-3 py-1 text-sm font-medium text-cyan-700 dark:bg-cyan-400/15 dark:text-cyan-200">
+                      当前主题：{themeLabels[theme]}
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    完整版 ThemeSwitcher，采用与项目一致的玻璃态与青色强调风格
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    ThemeSwitcherContent
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    主题切换组件（轻量版 - 嵌入式）
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">设置主题</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuSeparator />
+                        <ThemeSwitcherContent
+                          value={theme}
+                          onValueChange={handleThemeChange}
+                          components={{
+                            DropdownMenuRadioGroup,
+                            DropdownMenuRadioItem,
+                          }}
+                        />
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      当前主题：<strong>{theme}</strong>
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    轻量版 ThemeSwitcherContent，可嵌入其他 DropdownMenu 中使用
                   </div>
                 </CardContent>
               </Card>
