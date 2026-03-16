@@ -27,6 +27,7 @@
 ## 📦 安装
 
 **环境要求：**
+
 - Node.js >= 18
 - React >= 18.0.0 || >= 19.0.0
 - pnpm (推荐) 或 npm/yarn
@@ -60,11 +61,7 @@ npx shadcn-ui@latest add button card dialog input label select table skeleton dr
 
 ```typescript
 // src/lib/ui-adapter.ts
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   TableHeader as DataTableHeader,
@@ -242,7 +239,7 @@ pnpm format:check
 
 ```typescript
 // 问题：UI 组件被打包进 npm 包
-import { DataTable, Button, Dialog } from '@some-ui-lib'
+import { DataTable, Button, Dialog } from '@some-ui-lib';
 
 // 缺点：
 // 1. ❌ 无法修改 Button、Dialog 的源码
@@ -254,8 +251,8 @@ import { DataTable, Button, Dialog } from '@some-ui-lib'
 
 ```typescript
 // 优势：UI 组件由业务项目提供
-import { DataTable } from '@turinhub/atomix-common-ui'
-import { Button, Dialog } from '@/components/ui' // 自己的 shadcn/ui
+import { DataTable } from '@turinhub/atomix-common-ui';
+import { Button, Dialog } from '@/components/ui'; // 自己的 shadcn/ui
 
 // 优点：
 // 1. ✅ 可以随时修改 UI 组件源码

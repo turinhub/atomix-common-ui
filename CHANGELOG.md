@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-03-16
 
 ### Added
+
 - Initial release
 - DataTable component with pagination and actions
 - TableHeader component with search functionality

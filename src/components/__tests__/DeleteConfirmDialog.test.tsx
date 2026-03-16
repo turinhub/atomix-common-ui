@@ -18,20 +18,12 @@ const createMockComponents = () => ({
   DialogTitle: ({ children }: any) => <h2>{children}</h2>,
   DialogDescription: ({ children }: any) => <div>{children}</div>,
   Button: ({ children, onClick, variant, disabled }: any) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      data-variant={variant}
-    >
+    <button onClick={onClick} disabled={disabled} data-variant={variant}>
       {children}
     </button>
   ),
   Input: ({ value, onChange, placeholder }: any) => (
-    <input
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-    />
+    <input value={value} onChange={onChange} placeholder={placeholder} />
   ),
   Label: ({ children }: any) => <label>{children}</label>,
 });
@@ -69,7 +61,9 @@ describe('DeleteConfirmDialog', () => {
     );
 
     expect(screen.getByTestId('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '确认删除' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: '确认删除' })
+    ).toBeInTheDocument();
   });
 
   it('应该渲染标题和描述', () => {

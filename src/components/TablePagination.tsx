@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 import type {
   ButtonComponent,
   SelectComponent,
@@ -112,7 +114,7 @@ export function TablePagination({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {availablePageSizeOptions.map(option => (
+                {availablePageSizeOptions.map((option) => (
                   <SelectItem key={option} value={String(option)}>
                     {option}
                   </SelectItem>
@@ -131,19 +133,7 @@ export function TablePagination({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 0 || safeTotalPages <= 1}
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeft className="h-4 w-4" />
           上一页
         </Button>
         <Button
@@ -153,19 +143,7 @@ export function TablePagination({
           disabled={currentPage >= safeTotalPages - 1 || safeTotalPages <= 1}
         >
           下一页
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

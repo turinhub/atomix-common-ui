@@ -17,7 +17,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'AtomixCommonUI',
       formats: ['es', 'cjs'],
-      fileName: (format) => format === 'es' ? 'index.js' : 'index.c.js',
+      fileName: (format) => (format === 'es' ? 'index.js' : 'index.c.js'),
     },
     rollupOptions: {
       external: [

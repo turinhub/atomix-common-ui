@@ -1,3 +1,4 @@
+import { MoreVertical } from 'lucide-react';
 import { ReactNode } from 'react';
 import type { HTMLAttributes, ButtonHTMLAttributes } from 'react';
 
@@ -58,10 +59,14 @@ export interface UIComponents {
   Button: ButtonComponent;
   DropdownMenu: UIComponent<HTMLAttributes<HTMLDivElement>>;
   DropdownMenuTrigger: ButtonComponent;
-  DropdownMenuContent: UIComponent<HTMLAttributes<HTMLDivElement> & { align?: 'start' | 'end' | 'center' }>;
-  DropdownMenuItem: UIComponent<ButtonHTMLAttributes<HTMLDivElement> & {
-    onClick?: (e: React.MouseEvent) => void;
-  }>;
+  DropdownMenuContent: UIComponent<
+    HTMLAttributes<HTMLDivElement> & { align?: 'start' | 'end' | 'center' }
+  >;
+  DropdownMenuItem: UIComponent<
+    ButtonHTMLAttributes<HTMLDivElement> & {
+      onClick?: (e: React.MouseEvent) => void;
+    }
+  >;
   DropdownMenuSeparator: UIComponent;
   Skeleton: UIComponent<HTMLAttributes<HTMLDivElement>>;
   TableHeaderComponent: React.ComponentType<TableHeaderProps>;
@@ -207,16 +212,7 @@ export function DataTable<T extends Record<string, any>>({
               className="h-8 w-8 p-0"
               aria-label="打开行操作菜单"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
+              <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -250,7 +246,7 @@ export function DataTable<T extends Record<string, any>>({
     return (
       <TableHeader>
         <TableRow className="bg-muted/50 hover:bg-muted/50">
-          {columns.map(column => (
+          {columns.map((column) => (
             <TableHead
               key={String(column.key)}
               className={`font-semibold text-foreground ${
@@ -283,7 +279,7 @@ export function DataTable<T extends Record<string, any>>({
         <TableBody>
           {Array.from({ length: 5 }).map((_, index) => (
             <TableRow key={index}>
-              {columns.map(column => (
+              {columns.map((column) => (
                 <TableCell
                   key={String(column.key)}
                   style={{ width: column.width }}
@@ -339,7 +335,7 @@ export function DataTable<T extends Record<string, any>>({
               className={`${className || ''} hover:bg-muted/50`}
               {...rowProps}
             >
-              {columns.map(column => {
+              {columns.map((column) => {
                 const value = record[column.key as keyof T];
                 const content = column.render
                   ? column.render(value as T[ColumnKey<T>], record, index)

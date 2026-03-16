@@ -157,36 +157,54 @@ export default function App() {
     />
   );
 
+  const glassCard =
+    'border border-slate-200/80 bg-white/82 backdrop-blur-xl shadow-[0_18px_46px_rgba(15,23,42,0.12)] dark:border-white/15 dark:bg-slate-900/58 dark:shadow-[0_0_0_1px_rgba(56,189,248,0.08),0_22px_70px_rgba(2,8,23,0.62)]';
+  const glassCardSub =
+    'border border-slate-200/70 bg-white/72 backdrop-blur-lg shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/48 dark:shadow-[0_0_0_1px_rgba(56,189,248,0.05),0_14px_42px_rgba(2,8,23,0.5)]';
+
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+    <main className="relative min-h-screen overflow-hidden bg-slate-50 px-6 py-8 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="bg-cyan-300/16 absolute left-[-12rem] top-[-10rem] h-80 w-80 rounded-full blur-[100px] dark:bg-cyan-400/25" />
+        <div className="bg-blue-400/12 absolute right-[-10rem] top-16 h-96 w-96 rounded-full blur-[120px] dark:bg-blue-500/25" />
+        <div className="bg-violet-400/12 absolute bottom-[-14rem] left-1/3 h-[30rem] w-[30rem] rounded-full blur-[140px] dark:bg-violet-500/20" />
+      </div>
+
+      <div className="relative mx-auto flex max-w-6xl flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold">Atomix UI Playground</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
+              Atomix UI Playground
+            </h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               本地样式测试页，用于快速验证组件视觉与交互。
             </p>
           </div>
           <Button
             variant={isDark ? 'secondary' : 'outline'}
+            className="border-cyan-500/35 bg-white/80 text-cyan-700 hover:bg-cyan-50 dark:border-cyan-200/40 dark:bg-slate-900/30 dark:text-cyan-100 dark:hover:bg-slate-800/70"
             onClick={() => setIsDark((value) => !value)}
           >
             {isDark ? '切换浅色' : '切换深色'}
           </Button>
         </div>
 
-        <Card>
+        <Card className={`rounded-3xl ${glassCard}`}>
           <CardHeader>
-            <CardTitle>Business Layer（TurinHub 业务层）</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-slate-900 dark:text-white">
+              Business Layer（TurinHub 业务层）
+            </CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-300">
               验证业务组件注入 shadcn ui 后的真实使用链路
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Card>
+            <Card className={`rounded-2xl ${glassCardSub}`}>
               <CardHeader>
-                <CardTitle>TableHeader（独立）</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-slate-900 dark:text-white">
+                  TableHeader（独立）
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-300">
                   验证搜索与操作按钮组合的可用性
                 </CardDescription>
               </CardHeader>
@@ -253,10 +271,17 @@ export default function App() {
                 TableHeader,
                 TableRow,
                 Button,
-                DropdownMenu,
+                DropdownMenu: DropdownMenu as unknown as React.ComponentType<
+                  React.HTMLAttributes<HTMLDivElement>
+                >,
                 DropdownMenuTrigger,
                 DropdownMenuContent,
-                DropdownMenuItem,
+                DropdownMenuItem:
+                  DropdownMenuItem as unknown as React.ComponentType<
+                    React.ButtonHTMLAttributes<HTMLDivElement> & {
+                      onClick?: (e: React.MouseEvent) => void;
+                    }
+                  >,
                 DropdownMenuSeparator,
                 Skeleton,
                 TableHeaderComponent: tableHeaderAdapter,
@@ -266,22 +291,30 @@ export default function App() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`rounded-3xl ${glassCard}`}>
           <CardHeader>
-            <CardTitle>Base Layer（shadcn 基线）</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-slate-900 dark:text-white">
+              Base Layer（shadcn 基线）
+            </CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-300">
               用于验证 shadcn 组件在当前主题 token 与依赖版本下的表现
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
+              <Card className={`rounded-2xl ${glassCardSub}`}>
                 <CardHeader>
-                  <CardTitle>Buttons</CardTitle>
-                  <CardDescription>主要按钮样式矩阵</CardDescription>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    Buttons
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    主要按钮样式矩阵
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-3">
-                  <Button>Default</Button>
+                  <Button className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+                    Default
+                  </Button>
                   <Button variant="secondary">Secondary</Button>
                   <Button variant="outline">Outline</Button>
                   <Button variant="destructive">Destructive</Button>
@@ -290,10 +323,14 @@ export default function App() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={`rounded-2xl ${glassCardSub}`}>
                 <CardHeader>
-                  <CardTitle>Form</CardTitle>
-                  <CardDescription>输入、选择与标签样式</CardDescription>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    Form
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    输入、选择与标签样式
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -318,10 +355,14 @@ export default function App() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
+              <Card className={`rounded-2xl ${glassCardSub}`}>
                 <CardHeader>
-                  <CardTitle>Overlay</CardTitle>
-                  <CardDescription>Dialog 与 Dropdown 状态测试</CardDescription>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    Overlay
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    Dialog 与 Dropdown 状态测试
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex items-center gap-3">
                   <Dialog>
@@ -372,24 +413,32 @@ export default function App() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={`rounded-2xl ${glassCardSub}`}>
                 <CardHeader>
-                  <CardTitle>Skeleton</CardTitle>
-                  <CardDescription>骨架屏基础样式</CardDescription>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    Skeleton
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    骨架屏基础样式
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Skeleton className="h-4 w-2/3" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700/70" />
+                  <Skeleton className="h-4 w-full bg-slate-200 dark:bg-slate-700/70" />
+                  <Skeleton className="h-4 w-5/6 bg-slate-200 dark:bg-slate-700/70" />
+                  <Skeleton className="h-24 w-full bg-slate-200 dark:bg-slate-700/70" />
                 </CardContent>
               </Card>
             </div>
 
-            <Card>
+            <Card className={`rounded-2xl ${glassCardSub}`}>
               <CardHeader>
-                <CardTitle>Table</CardTitle>
-                <CardDescription>列表类组件样式验证</CardDescription>
+                <CardTitle className="text-slate-900 dark:text-white">
+                  Table
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-300">
+                  列表类组件样式验证
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -403,7 +452,9 @@ export default function App() {
                   <TableBody>
                     {baseSnapshotProducts.map((product) => (
                       <TableRow key={product.name}>
-                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {product.name}
+                        </TableCell>
                         <TableCell>{product.status}</TableCell>
                         <TableCell>{product.owner}</TableCell>
                       </TableRow>
@@ -411,7 +462,7 @@ export default function App() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="text-sm text-muted-foreground">
+              <CardFooter className="text-sm text-slate-500 dark:text-slate-400">
                 共 {baseSnapshotProducts.length} 个组件样式快照
               </CardFooter>
             </Card>

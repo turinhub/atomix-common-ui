@@ -15,11 +15,7 @@ import {
 } from '@turinhub/atomix-common-ui';
 
 // ===== 步骤 1: 创建 UI 组件适配器 =====
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -91,9 +87,27 @@ interface User {
 // ===== 步骤 3: 使用组件 =====
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([
-    { id: 1, name: '张三', email: 'zhangsan@example.com', role: 'Admin', status: 'active' },
-    { id: 2, name: '李四', email: 'lisi@example.com', role: 'User', status: 'active' },
-    { id: 3, name: '王五', email: 'wangwu@example.com', role: 'Guest', status: 'inactive' },
+    {
+      id: 1,
+      name: '张三',
+      email: 'zhangsan@example.com',
+      role: 'Admin',
+      status: 'active',
+    },
+    {
+      id: 2,
+      name: '李四',
+      email: 'lisi@example.com',
+      role: 'User',
+      status: 'active',
+    },
+    {
+      id: 3,
+      name: '王五',
+      email: 'wangwu@example.com',
+      role: 'Guest',
+      status: 'inactive',
+    },
   ]);
 
   const [loading, setLoading] = useState(false);
@@ -124,13 +138,15 @@ export function UserManagement() {
       title: '角色',
       align: 'center' as const,
       render: (value: string) => (
-        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-          value === 'Admin'
-            ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-            : value === 'User'
-              ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
-              : 'bg-slate-100 text-slate-800 dark:bg-slate-500/20 dark:text-slate-300'
-        }`}>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+            value === 'Admin'
+              ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
+              : value === 'User'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                : 'bg-slate-100 text-slate-800 dark:bg-slate-500/20 dark:text-slate-300'
+          }`}
+        >
           {value}
         </span>
       ),
@@ -140,11 +156,13 @@ export function UserManagement() {
       title: '状态',
       align: 'center' as const,
       render: (value: string) => (
-        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-          value === 'active'
-            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
-            : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300'
-        }`}>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+            value === 'active'
+              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
+              : 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300'
+          }`}
+        >
           {value === 'active' ? '活跃' : '禁用'}
         </span>
       ),
@@ -158,7 +176,7 @@ export function UserManagement() {
 
   const confirmDelete = () => {
     if (deleteDialog.user) {
-      setUsers(users.filter(u => u.id !== deleteDialog.user!.id));
+      setUsers(users.filter((u) => u.id !== deleteDialog.user!.id));
       setDeleteDialog({ open: false, user: null });
     }
   };
@@ -232,7 +250,7 @@ export function UserManagement() {
           Label,
         }}
         open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
         title="确认删除用户"
         description={`确定要删除用户 "${deleteDialog.user?.name}" 吗？此操作无法撤销。`}
         onConfirm={confirmDelete}

@@ -1,3 +1,4 @@
+import { Plus, Search } from 'lucide-react';
 import { ReactNode } from 'react';
 
 import type { InputComponent, ButtonComponent } from '../types/component-types';
@@ -69,19 +70,7 @@ export function TableHeader({
           {action && <div className="flex items-center gap-2">{action}</div>}
           {!action && actionLabel && onActionClick && (
             <Button onClick={onActionClick} disabled={loading} size="sm">
-              <svg
-                className="mr-2 h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <Plus className="mr-2 h-4 w-4" />
               {actionLabel}
             </Button>
           )}
@@ -90,23 +79,13 @@ export function TableHeader({
       {showSearch && (
         <div className="flex items-center gap-2">
           <div className="relative max-w-sm flex-1">
-            <svg
-              className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
               value={searchValue}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange?.(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onSearchChange?.(e.target.value)
+              }
               onKeyPress={handleKeyPress}
               className="h-9 pl-8"
               disabled={loading}

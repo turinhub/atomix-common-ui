@@ -1,0 +1,17 @@
+# Shadcn UI components (do not format auto-generated files)
+src/components/ui/*.tsx
+
+# Dependencies
+node_modules/
+dist/
+build/
+
+# Lock files
+pnpm.lock
+pnpm-lock.yaml
+pnpm-lock.yml
+package-lock.json
+yarn.lock
+
+# Logs
+*.log

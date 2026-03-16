@@ -23,5 +23,11 @@
     "noEmitOnError": false
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "**/*.test.tsx", "**/*.test.ts", "src/test"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "src/test"
+  ]
 }

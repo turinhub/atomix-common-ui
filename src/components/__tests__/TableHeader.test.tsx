@@ -22,12 +22,7 @@ describe('TableHeader', () => {
   it('应该渲染标题', () => {
     const mockComponents = createMockComponents();
 
-    render(
-      <TableHeader
-        components={mockComponents}
-        title="测试标题"
-      />
-    );
+    render(<TableHeader components={mockComponents} title="测试标题" />);
 
     expect(screen.getByText('测试标题')).toBeInTheDocument();
   });

@@ -8,10 +8,23 @@ export { TableHeader } from './components/TableHeader';
 export { TablePagination } from './components/TablePagination';
 
 // Types
-export type { Column, DataTableProps, UIComponents } from './components/DataTable';
-export type { DeleteConfirmDialogProps, DialogUIComponents } from './components/DeleteConfirmDialog';
-export type { TableHeaderProps, HeaderUIComponents } from './components/TableHeader';
-export type { TablePaginationProps, PaginationUIComponents } from './components/TablePagination';
+export type {
+  Column,
+  DataTableProps,
+  UIComponents,
+} from './components/DataTable';
+export type {
+  DeleteConfirmDialogProps,
+  DialogUIComponents,
+} from './components/DeleteConfirmDialog';
+export type {
+  TableHeaderProps,
+  HeaderUIComponents,
+} from './components/TableHeader';
+export type {
+  TablePaginationProps,
+  PaginationUIComponents,
+} from './components/TablePagination';
 
 // Component Types
 export type {

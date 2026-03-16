@@ -35,11 +35,7 @@ npx shadcn-ui@latest add button card dialog input label select table skeleton dr
 
 ```typescript
 // src/lib/ui-adapter.ts
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -264,28 +260,29 @@ export const dataTableUI: UIComponents = {
 
 ### DataTable
 
-| Prop | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `components` | `UIComponents` | ✅ | UI 组件适配器 |
-| `data` | `T[]` | ✅ | 表格数据 |
-| `columns` | `Column<T>[]` | ✅ | 列配置 |
-| `rowKey` | `keyof T \| function` | ✅ | 行的唯一标识 |
-| `loading` | `boolean` | ❌ | 加载状态 |
-| `header` | `TableHeaderProps` | ❌ | 头部配置 |
-| `pagination` | `PaginationProps` | ❌ | 分页配置 |
-| `actions` | `ActionsConfig` | ❌ | 操作列配置 |
+| Prop         | 类型                  | 必填 | 说明          |
+| ------------ | --------------------- | ---- | ------------- |
+| `components` | `UIComponents`        | ✅   | UI 组件适配器 |
+| `data`       | `T[]`                 | ✅   | 表格数据      |
+| `columns`    | `Column<T>[]`         | ✅   | 列配置        |
+| `rowKey`     | `keyof T \| function` | ✅   | 行的唯一标识  |
+| `loading`    | `boolean`             | ❌   | 加载状态      |
+| `header`     | `TableHeaderProps`    | ❌   | 头部配置      |
+| `pagination` | `PaginationProps`     | ❌   | 分页配置      |
+| `actions`    | `ActionsConfig`       | ❌   | 操作列配置    |
 
 ### DeleteConfirmDialog
 
-| Prop | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `components` | `DialogUIComponents` | ✅ | UI 组件适配器 |
-| `open` | `boolean` | ✅ | 是否打开 |
-| `onOpenChange` | `(open: boolean) => void` | ✅ | 打开状态变化 |
-| `title` | `ReactNode` | ✅ | 标题 |
-| `description` | `ReactNode` | ✅ | 描述 |
-| `onConfirm` | `() => void` | ✅ | 确认回调 |
-| `verification` | `object` | ❌ | 验证配置 |
+| Prop           | 类型                      | 必填 | 说明          |
+| -------------- | ------------------------- | ---- | ------------- |
+| `components`   | `DialogUIComponents`      | ✅   | UI 组件适配器 |
+| `open`         | `boolean`                 | ✅   | 是否打开      |
+| `onOpenChange` | `(open: boolean) => void` | ✅   | 打开状态变化  |
+| `title`        | `ReactNode`               | ✅   | 标题          |
+| `description`  | `ReactNode`               | ✅   | 描述          |
+| `onConfirm`    | `() => void`              | ✅   | 确认回调      |
+| `verification` | `object`                  | ❌   | 验证配置      |
+| `loadingIcon`  | `ReactNode`               | ❌   | 自定义加载图标 |
 
 ## 🛠️ 工具函数
 
@@ -329,7 +326,7 @@ import type {
 
 ```typescript
 // 问题：UI 组件被打包进 npm 包
-import { DataTable, Button, Dialog } from '@some-ui-lib'
+import { DataTable, Button, Dialog } from '@some-ui-lib';
 
 // 缺点：
 // 1. ❌ 无法修改 Button、Dialog 的源码
@@ -341,8 +338,8 @@ import { DataTable, Button, Dialog } from '@some-ui-lib'
 
 ```typescript
 // 优势：UI 组件由业务项目提供
-import { DataTable } from '@turinhub/atomix-common-ui'
-import { Button, Dialog } from '@/components/ui' // 自己的 shadcn/ui
+import { DataTable } from '@turinhub/atomix-common-ui';
+import { Button, Dialog } from '@/components/ui'; // 自己的 shadcn/ui
 
 // 优点：
 // 1. ✅ 可以随时修改 UI 组件源码
