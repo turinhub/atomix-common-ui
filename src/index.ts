@@ -8,6 +8,7 @@ export { TableHeader } from './components/TableHeader';
 export { TablePagination } from './components/TablePagination';
 export { ThemeSwitcher } from './components/ThemeSwitcher';
 export { ThemeSwitcherContent } from './components/ThemeSwitcherContent';
+export { SimplePDFReader } from './components/SimplePDFReader';
 
 // Types
 export type {
@@ -36,6 +37,10 @@ export type {
   ThemeSwitcherContentProps,
   ThemeSwitcherContentUIComponents,
 } from './components/ThemeSwitcherContent';
+export type {
+  SimplePDFReaderProps,
+  SimplePDFReaderUIComponents,
+} from './components/SimplePDFReader';
 
 // Component Types
 export type {
@@ -63,4 +68,5 @@ export type {
   DropdownMenuContentComponent,
   DropdownMenuRadioGroupComponent,
   DropdownMenuRadioItemComponent,
+  SkeletonComponent,
 } from './types/component-types';

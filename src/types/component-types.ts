@@ -142,3 +142,8 @@ export type DropdownMenuRadioItemComponent = UIComponent<{
   value: string;
   children?: React.ReactNode;
 }>;
+
+/**
+ * Skeleton 组件类型
+ */
+export type SkeletonComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;

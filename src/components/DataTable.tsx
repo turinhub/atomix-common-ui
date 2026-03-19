@@ -389,6 +389,7 @@ export function DataTable<T extends Record<string, any>>({
             onPageSizeChange={pagination.onPageSizeChange}
             pageSizeOptions={pagination.pageSizeOptions}
             showPageSizeSelector={pagination.showPageSizeSelector}
+            showJumpToPage={pagination.showJumpToPage}
             showTotal={pagination.showTotal}
             searchActive={isSearchActive}
           />

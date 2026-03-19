@@ -1,5 +1,5 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DataTable, type Column } from '../src/components/DataTable';
 import { DeleteConfirmDialog } from '../src/components/DeleteConfirmDialog';
@@ -7,6 +7,7 @@ import { TableHeader as BusinessTableHeader } from '../src/components/TableHeade
 import { TablePagination as BusinessTablePagination } from '../src/components/TablePagination';
 import { ThemeSwitcher } from '../src/components/ThemeSwitcher';
 import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
+import { SimplePDFReader } from '../src/components/SimplePDFReader';
 import { Button } from '../src/components/ui/button';
 import {
   Card,
@@ -83,6 +84,14 @@ const themeOptions = [
   { value: 'system', label: '跟随系统', icon: <Monitor className="h-4 w-4" /> },
 ] as const;
 type ThemeMode = (typeof themeOptions)[number]['value'];
+type TableDataVariant = 'all' | 'draft-only' | 'empty';
+type TableActionsVariant = 'none' | 'collapsed' | 'expanded';
+type TablePageSizePreset = 'compact' | 'default' | 'large';
+const pageSizeOptionsByPreset: Record<TablePageSizePreset, number[]> = {
+  compact: [2, 4, 8],
+  default: [5, 10, 20],
+  large: [10, 20, 50],
+};
 
 const themeIcons = themeOptions.reduce(
   (acc, option) => {
@@ -108,8 +117,26 @@ export default function App() {
   const [searchValue, setSearchValue] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const [tableDataVariant, setTableDataVariant] =
+    useState<TableDataVariant>('all');
+  const [tableActionsVariant, setTableActionsVariant] =
+    useState<TableActionsVariant>('collapsed');
+  const [tableShowHeader, setTableShowHeader] = useState(true);
+  const [tableShowPagination, setTableShowPagination] = useState(true);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [tableShowPageSizeSelector, setTableShowPageSizeSelector] =
+    useState(true);
+  const [tableShowJumpToPage, setTableShowJumpToPage] = useState(true);
+  const [tableShowTotal, setTableShowTotal] = useState(true);
+  const [tablePageSizePreset, setTablePageSizePreset] =
+    useState<TablePageSizePreset>('default');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const pageSizeByPresetRef = useRef<Record<TablePageSizePreset, number>>({
+    compact: 2,
+    default: 5,
+    large: 10,
+  });
 
   useEffect(() => {
     const updateTheme = () => {
@@ -134,28 +161,126 @@ export default function App() {
     }
   }, [theme]);
 
+  const tableSourceProducts = useMemo(() => {
+    if (tableDataVariant === 'empty') {
+      return [] as Product[];
+    }
+    if (tableDataVariant === 'draft-only') {
+      return products.filter((item) => item.status === 'Draft');
+    }
+    return products;
+  }, [tableDataVariant]);
+
   const filteredProducts = useMemo(() => {
     const keyword = searchValue.trim().toLowerCase();
     if (!keyword) {
-      return products;
+      return tableSourceProducts;
     }
-    return products.filter((item) => {
+    return tableSourceProducts.filter((item) => {
       return (
         item.name.toLowerCase().indexOf(keyword) > -1 ||
         item.owner.toLowerCase().indexOf(keyword) > -1 ||
         item.status.toLowerCase().indexOf(keyword) > -1
       );
     });
-  }, [searchValue]);
+  }, [searchValue, tableSourceProducts]);
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [searchValue, pageSize]);
+  }, [searchValue, pageSize, tableDataVariant]);
 
   const paginatedProducts = useMemo(() => {
     const start = currentPage * pageSize;
     return filteredProducts.slice(start, start + pageSize);
   }, [currentPage, pageSize, filteredProducts]);
+
+  const tableActions = useMemo(() => {
+    if (tableActionsVariant === 'none') {
+      return undefined;
+    }
+
+    if (tableActionsVariant === 'expanded') {
+      return {
+        mode: 'expanded' as const,
+        render: (record: Product) => (
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm">
+              编辑
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                setDeletingProduct(record);
+                setDeleteDialogOpen(true);
+              }}
+            >
+              删除
+            </Button>
+          </div>
+        ),
+      };
+    }
+
+    return {
+      mode: 'collapsed' as const,
+      items: [
+        {
+          label: '编辑',
+          onClick: () => {},
+        },
+        {
+          label: '删除',
+          className: 'text-destructive',
+          onClick: (record: Product) => {
+            setDeletingProduct(record);
+            setDeleteDialogOpen(true);
+          },
+        },
+      ],
+    };
+  }, [tableActionsVariant]);
+
+  const tableData = tableShowPagination ? paginatedProducts : filteredProducts;
+  const tablePageSizeOptions = pageSizeOptionsByPreset[tablePageSizePreset];
+  useEffect(() => {
+    if (tablePageSizeOptions.indexOf(pageSize) > -1) {
+      pageSizeByPresetRef.current[tablePageSizePreset] = pageSize;
+    }
+  }, [pageSize, tablePageSizeOptions, tablePageSizePreset]);
+  const handleTablePageSizePresetChange = (value: string) => {
+    const nextPreset = value as TablePageSizePreset;
+    const nextOptions = pageSizeOptionsByPreset[nextPreset];
+    const rememberedPageSize = pageSizeByPresetRef.current[nextPreset];
+    const nextPageSize =
+      nextOptions.indexOf(rememberedPageSize) > -1
+        ? rememberedPageSize
+        : nextOptions[0];
+    setTablePageSizePreset(nextPreset);
+    setPageSize(nextPageSize);
+  };
+  const showHideTabs = (value: boolean, onChange: (value: boolean) => void) => (
+    <div className="inline-flex w-full rounded-lg border border-slate-200 p-1 dark:border-slate-700">
+      <Button
+        type="button"
+        size="sm"
+        variant={value ? 'default' : 'ghost'}
+        className="min-w-0 flex-1"
+        onClick={() => onChange(true)}
+      >
+        显示
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant={!value ? 'default' : 'ghost'}
+        className="min-w-0 flex-1"
+        onClick={() => onChange(false)}
+      >
+        隐藏
+      </Button>
+    </div>
+  );
 
   const columns: Column<Product>[] = [
     {
@@ -311,44 +436,198 @@ export default function App() {
               </CardContent>
             </Card>
 
+            <Card className={`rounded-2xl ${glassCardSub}`}>
+              <CardHeader>
+                <CardTitle className="text-slate-900 dark:text-white">
+                  SimplePDFReader
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-300">
+                  简单的 PDF 阅读器组件（使用示例 URL）
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SimplePDFReader
+                  url="https://arxiv.org/pdf/1706.03762"
+                  components={{
+                    Card,
+                    CardContent,
+                    CardFooter,
+                    Button,
+                    Label,
+                    Skeleton,
+                  }}
+                  initialPage={1}
+                  initialScale={1.0}
+                  showToolbar={true}
+                  showPagination={true}
+                  className="w-full"
+                  containerClassName="min-h-[500px]"
+                />
+              </CardContent>
+            </Card>
+
+            <Card className={`rounded-2xl ${glassCardSub}`}>
+              <CardHeader>
+                <CardTitle className="text-slate-900 dark:text-white">
+                  DataTable 搭配配置
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-300">
+                  用于快速切换头部、分页、操作列、数据状态与加载态组合
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid items-end gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      数据状态
+                    </Label>
+                    <Select
+                      value={tableDataVariant}
+                      onValueChange={(value) =>
+                        setTableDataVariant(value as TableDataVariant)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">全部数据</SelectItem>
+                        <SelectItem value="draft-only">仅 Draft</SelectItem>
+                        <SelectItem value="empty">空数据</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      操作列模式
+                    </Label>
+                    <Select
+                      value={tableActionsVariant}
+                      onValueChange={(value) =>
+                        setTableActionsVariant(value as TableActionsVariant)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="collapsed">折叠菜单</SelectItem>
+                        <SelectItem value="expanded">展开按钮</SelectItem>
+                        <SelectItem value="none">不显示操作列</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      头部区域
+                    </Label>
+                    {showHideTabs(tableShowHeader, setTableShowHeader)}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      加载态
+                    </Label>
+                    <Select
+                      value={tableLoading ? 'loading' : 'ready'}
+                      onValueChange={(value) =>
+                        setTableLoading(value === 'loading')
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ready">关闭</SelectItem>
+                        <SelectItem value="loading">开启</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid items-end gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      分页区域
+                    </Label>
+                    {showHideTabs(tableShowPagination, setTableShowPagination)}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      显示总数
+                    </Label>
+                    {showHideTabs(tableShowTotal, setTableShowTotal)}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      每页条数
+                    </Label>
+                    {showHideTabs(
+                      tableShowPageSizeSelector,
+                      setTableShowPageSizeSelector
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      跳页输入
+                    </Label>
+                    {showHideTabs(tableShowJumpToPage, setTableShowJumpToPage)}
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      每页选项集
+                    </Label>
+                    <Select
+                      value={tablePageSizePreset}
+                      onValueChange={handleTablePageSizePresetChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="compact">紧凑</SelectItem>
+                        <SelectItem value="default">默认</SelectItem>
+                        <SelectItem value="large">大页</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <DataTable<Product>
-              data={paginatedProducts}
+              data={tableData}
+              loading={tableLoading}
               columns={columns}
               rowKey="id"
-              header={{
-                title: '组件列表',
-                searchPlaceholder: '输入关键字过滤',
-                searchValue,
-                onSearchChange: setSearchValue,
-                onSearch: () => {},
-                actionLabel: '创建组件',
-                onActionClick: () => {},
-              }}
-              pagination={{
-                currentPage,
-                pageSize,
-                total: filteredProducts.length,
-                onPageChange: setCurrentPage,
-                onPageSizeChange: setPageSize,
-                show: true,
-              }}
-              actions={{
-                mode: 'collapsed',
-                items: [
-                  {
-                    label: '编辑',
-                    onClick: () => {},
-                  },
-                  {
-                    label: '删除',
-                    className: 'text-destructive',
-                    onClick: (record) => {
-                      setDeletingProduct(record);
-                      setDeleteDialogOpen(true);
-                    },
-                  },
-                ],
-              }}
+              header={
+                tableShowHeader
+                  ? {
+                      title: '组件列表',
+                      searchPlaceholder: '输入关键字过滤',
+                      searchValue,
+                      onSearchChange: setSearchValue,
+                      onSearch: () => {},
+                      actionLabel: '创建组件',
+                      onActionClick: () => {},
+                    }
+                  : undefined
+              }
+              pagination={
+                tableShowPagination
+                  ? {
+                      currentPage,
+                      pageSize,
+                      total: filteredProducts.length,
+                      onPageChange: setCurrentPage,
+                      onPageSizeChange: setPageSize,
+                      pageSizeOptions: tablePageSizeOptions,
+                      showPageSizeSelector: tableShowPageSizeSelector,
+                      showJumpToPage: tableShowJumpToPage,
+                      showTotal: tableShowTotal,
+                      show: true,
+                    }
+                  : undefined
+              }
+              actions={tableActions}
               components={{
                 Card,
                 CardContent,
