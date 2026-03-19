@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -10,16 +10,19 @@ const mockPDFDocument = {
   numPages: 3,
   getPage: vi.fn(),
 };
+let mockPdfLoadDelay = 100;
+let mockPdfLoadError: Error | null = null;
 
 vi.mock('react-pdf', () => ({
   Document: ({ children, onLoadSuccess, onLoadError }: any) => {
-    // Simulate async loading
     React.useEffect(() => {
       const timer = setTimeout(() => {
-        if (onLoadSuccess) {
+        if (mockPdfLoadError) {
+          onLoadError?.(mockPdfLoadError);
+        } else if (onLoadSuccess) {
           onLoadSuccess(mockPDFDocument);
         }
-      }, 100);
+      }, mockPdfLoadDelay);
       return () => clearTimeout(timer);
     }, [onLoadSuccess, onLoadError]);
 
@@ -32,7 +35,9 @@ vi.mock('react-pdf', () => ({
   ),
   pdfjs: {
     getDocument: () => ({
-      promise: Promise.resolve(mockPDFDocument),
+      promise: mockPdfLoadError
+        ? Promise.reject(mockPdfLoadError)
+        : Promise.resolve(mockPDFDocument),
     }),
   },
 }));
@@ -40,7 +45,7 @@ vi.mock('react-pdf', () => ({
 // Mock pdfjs-dist
 vi.mock('pdfjs-dist', () => ({
   get version() {
-    return '4.0.0';
+    return '5.5.207';
   },
   GlobalWorkerOptions: {
     workerSrc: '',
@@ -86,13 +91,15 @@ const createMockComponents = () => ({
 describe('SimplePDFReader', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPdfLoadDelay = 100;
+    mockPdfLoadError = null;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('应该渲染加载状态', () => {
+  it('应该渲染加载状态', async () => {
     const mockComponents = createMockComponents();
 
     render(
@@ -103,13 +110,13 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    // Use getAllByTestId since we render multiple skeletons
     expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
     expect(screen.getByText('正在加载...')).toBeInTheDocument();
+    await screen.findByTestId('pdf-page-1');
   });
 
-  it('缺少 components 时应该显示错误', () => {
-    render(
+  it('缺少 components 时应该显示错误', async () => {
+    const { unmount } = render(
       // @ts-expect-error - 测试缺少 components 的情况
       <SimplePDFReader url="/test.pdf" />
     );
@@ -117,6 +124,8 @@ describe('SimplePDFReader', () => {
     expect(
       screen.getByText('错误：请通过 components prop 注入 UI 组件')
     ).toBeInTheDocument();
+    unmount();
+    await Promise.resolve();
   });
 
   it('应该显示工具栏', async () => {
@@ -136,7 +145,7 @@ describe('SimplePDFReader', () => {
     expect(zoomText).toBeInTheDocument();
   });
 
-  it('应该隐藏工具栏', () => {
+  it('应该隐藏工具栏', async () => {
     const mockComponents = createMockComponents();
 
     render(
@@ -147,9 +156,9 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    // Toolbar should not be visible
     const zoomText = screen.queryByText('100%');
     expect(zoomText).not.toBeInTheDocument();
+    await screen.findByTestId('pdf-page-1');
   });
 
   it('应该显示分页控制', async () => {
@@ -202,7 +211,7 @@ describe('SimplePDFReader', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('应该隐藏分页控制', () => {
+  it('应该隐藏分页控制', async () => {
     const mockComponents = createMockComponents();
 
     render(
@@ -213,9 +222,9 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    // Pagination should not be visible
     const pageInfo = screen.queryByText(/\d+ \/ \d+/);
     expect(pageInfo).not.toBeInTheDocument();
+    await screen.findByTestId('pdf-page-1');
   });
 
   it('应该调用 onPageChange', async () => {
@@ -340,10 +349,10 @@ describe('SimplePDFReader', () => {
     // Wait for component to load
     await screen.findByText(/300%/);
 
-    const buttons = screen.getAllByTestId('button');
-    // Find zoom in button (it should be disabled)
-    const disabledButtons = buttons.filter((btn) => btn.disabled);
-    expect(disabledButtons.length).toBeGreaterThan(0);
+    const operationsBar = screen.getByTestId('pdf-operations-bar');
+    const operationButtons = within(operationsBar).getAllByTestId('button');
+
+    expect(operationButtons[1]).toBeDisabled();
   });
 
   it('应该应用自定义类名', async () => {
@@ -364,9 +373,12 @@ describe('SimplePDFReader', () => {
 
     const content = screen.getByTestId('card-content');
     expect(content).toHaveClass('custom-container-class');
+
+    const page = await screen.findByTestId('pdf-page-1');
+    expect(page.parentElement).toHaveClass('custom-page-class');
   });
 
-  it('应该显示自定义加载文本', () => {
+  it('应该显示自定义加载文本', async () => {
     const mockComponents = createMockComponents();
 
     render(
@@ -378,26 +390,12 @@ describe('SimplePDFReader', () => {
     );
 
     expect(screen.getByText('加载 PDF 中...')).toBeInTheDocument();
+    await screen.findByTestId('pdf-page-1');
   });
 
   it('应该显示自定义错误文本', async () => {
     const mockComponents = createMockComponents();
-
-    // Mock a failed load
-    vi.doMock('react-pdf', () => ({
-      Document: ({ onLoadError }: any) => {
-        React.useEffect(() => {
-          onLoadError?.(new Error('Failed to load'));
-        }, [onLoadError]);
-        return <div data-testid="pdf-document" />;
-      },
-      Page: () => <div>Page</div>,
-      pdfjs: {
-        getDocument: () => ({
-          promise: Promise.reject(new Error('Failed to load')),
-        }),
-      },
-    }));
+    mockPdfLoadError = new Error('Failed to load');
 
     render(
       <SimplePDFReader
@@ -407,7 +405,6 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    // Error text should appear after loading fails
     await screen.findByText('PDF 加载出错');
   });
 
@@ -439,6 +436,7 @@ describe('SimplePDFReader', () => {
   it('应该支持非受控模式', async () => {
     const mockComponents = createMockComponents();
     const onPageChange = vi.fn();
+    const user = userEvent.setup();
 
     render(
       <SimplePDFReader
@@ -449,10 +447,20 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    // Wait for component to load
-    await screen.findByText(/\d+\s*\/\s*\d+/);
+    await screen.findByText('1 / 3');
 
-    // Verify onPageChange is a function
-    expect(typeof onPageChange).toBe('function');
+    const buttons = screen.getAllByTestId('button');
+    const nextButton = buttons.find((btn) =>
+      btn.textContent?.includes('下一页')
+    );
+
+    expect(nextButton).toBeInTheDocument();
+
+    if (nextButton) {
+      await user.click(nextButton);
+    }
+
+    expect(onPageChange).toHaveBeenCalledWith(2);
+    await screen.findByText('2 / 3');
   });
 });
