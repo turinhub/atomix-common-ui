@@ -78,6 +78,17 @@ const createMockComponents = () => ({
       {children}
     </button>
   ),
+  Input: ({ className, value, onChange, min, max }: any) => (
+    <input
+      className={className}
+      data-testid="input"
+      type="number"
+      min={min}
+      max={max}
+      value={value}
+      onChange={onChange}
+    />
+  ),
   Label: ({ children, className }: any) => (
     <label className={className} data-testid="label">
       {children}
@@ -174,8 +185,8 @@ describe('SimplePDFReader', () => {
     );
 
     // Wait for loading to complete
-    const pageInfo = await screen.findByText(/\d+ \/ \d+/);
-    expect(pageInfo).toBeInTheDocument();
+    const pageInput = await screen.findByTestId('input');
+    expect(pageInput).toBeInTheDocument();
 
     const buttons = screen.getAllByTestId('button');
     expect(buttons.length).toBeGreaterThan(0);
@@ -188,7 +199,7 @@ describe('SimplePDFReader', () => {
 
     const card = await screen.findByTestId('card');
     const cardContent = screen.getByTestId('card-content');
-    const paginationInfo = screen.getByText(/\d+ \/ \d+/);
+    const paginationInput = screen.getByTestId('input');
     const contentIndex = Array.prototype.indexOf.call(
       card.children,
       cardContent
@@ -202,10 +213,10 @@ describe('SimplePDFReader', () => {
       }
       return -1;
     };
-    const paginationIndex = getChildIndexContaining(paginationInfo);
+    const paginationIndex = getChildIndexContaining(paginationInput);
 
     expect(paginationIndex).toBeLessThan(contentIndex);
-    expect(operationsBar).toContainElement(paginationInfo);
+    expect(operationsBar).toContainElement(paginationInput);
     expect(
       screen.queryByText(/第 \d+ 页 \/ 共 \d+ 页/)
     ).not.toBeInTheDocument();
@@ -222,8 +233,8 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    const pageInfo = screen.queryByText(/\d+ \/ \d+/);
-    expect(pageInfo).not.toBeInTheDocument();
+    const pageInput = screen.queryByTestId('input');
+    expect(pageInput).not.toBeInTheDocument();
     await screen.findByTestId('pdf-page-1');
   });
 
@@ -242,20 +253,14 @@ describe('SimplePDFReader', () => {
     );
 
     // Wait for component to load
-    await screen.findByText(/\d+ \/ \d+/);
+    await screen.findByTestId('input');
 
-    // Find next page button (the button with "下一页" text)
-    const buttons = screen.getAllByTestId('button');
-    const nextButton = buttons.find((btn) =>
-      btn.textContent?.includes('下一页')
-    );
+    const operationsBar = screen.getByTestId('pdf-operations-bar');
+    const buttons = within(operationsBar).getAllByTestId('button');
+    const nextButton = buttons[buttons.length - 1];
 
-    expect(nextButton).toBeInTheDocument();
-
-    if (nextButton) {
-      await user.click(nextButton);
-      expect(onPageChange).toHaveBeenCalledWith(2);
-    }
+    await user.click(nextButton);
+    expect(onPageChange).toHaveBeenCalledWith(2);
   });
 
   it('第一页时上一页按钮应该禁用', async () => {
@@ -270,12 +275,11 @@ describe('SimplePDFReader', () => {
     );
 
     // Wait for component to load
-    await screen.findByText(/\d+ \/ \d+/);
+    await screen.findByTestId('input');
 
-    const buttons = screen.getAllByTestId('button');
-    const prevButton = buttons.find((btn) =>
-      btn.textContent?.includes('上一页')
-    );
+    const operationsBar = screen.getByTestId('pdf-operations-bar');
+    const buttons = within(operationsBar).getAllByTestId('button');
+    const prevButton = buttons[buttons.length - 2];
 
     expect(prevButton).toBeDisabled();
   });
@@ -328,7 +332,10 @@ describe('SimplePDFReader', () => {
 
     render(<SimplePDFReader url="/test.pdf" components={mockComponents} />);
 
-    const fullscreenButton = await screen.findByText('全屏');
+    await screen.findByTestId('input');
+    const operationsBar = screen.getByTestId('pdf-operations-bar');
+    const buttons = within(operationsBar).getAllByTestId('button');
+    const fullscreenButton = buttons[2];
     await user.click(fullscreenButton);
 
     expect(requestFullscreenMock).toHaveBeenCalled();
@@ -430,7 +437,7 @@ describe('SimplePDFReader', () => {
     render(<SimplePDFReader url="/test.pdf" components={mockComponents} />);
 
     // Wait for page indicator to appear
-    await screen.findByText(/\d+\s*\/\s*\d+/);
+    await screen.findByTestId('input');
   });
 
   it('应该支持非受控模式', async () => {
@@ -447,20 +454,42 @@ describe('SimplePDFReader', () => {
       />
     );
 
-    await screen.findByText('1 / 3');
+    await screen.findByDisplayValue('1');
 
-    const buttons = screen.getAllByTestId('button');
-    const nextButton = buttons.find((btn) =>
-      btn.textContent?.includes('下一页')
-    );
-
-    expect(nextButton).toBeInTheDocument();
-
-    if (nextButton) {
-      await user.click(nextButton);
-    }
+    const operationsBar = screen.getByTestId('pdf-operations-bar');
+    const buttons = within(operationsBar).getAllByTestId('button');
+    const nextButton = buttons[buttons.length - 1];
+    await user.click(nextButton);
 
     expect(onPageChange).toHaveBeenCalledWith(2);
-    await screen.findByText('2 / 3');
+    await screen.findByDisplayValue('2');
+  });
+
+  describe('键盘快捷键', () => {
+    it('应该支持 enableHotkeys 属性', async () => {
+      const mockComponents = createMockComponents();
+
+      const { rerender } = render(
+        <SimplePDFReader
+          url="/test.pdf"
+          components={mockComponents}
+          enableHotkeys={true}
+        />
+      );
+
+      await screen.findByTestId('input');
+
+      // Re-render with hotkeys disabled
+      rerender(
+        <SimplePDFReader
+          url="/test.pdf"
+          components={mockComponents}
+          enableHotkeys={false}
+        />
+      );
+
+      // Component should still render
+      expect(screen.getByTestId('input')).toBeInTheDocument();
+    });
   });
 });

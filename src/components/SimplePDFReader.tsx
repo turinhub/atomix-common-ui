@@ -1,10 +1,18 @@
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Maximize2 as Maximize2Icon,
+  Minimize2 as Minimize2Icon,
+  ZoomIn as ZoomInIcon,
+  ZoomOut as ZoomOutIcon,
+} from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { HTMLAttributes } from 'react';
 
 import type {
   CardComponent,
   ButtonComponent,
-  LabelComponent,
+  InputComponent,
   SkeletonComponent,
 } from '../types/component-types';
 
@@ -14,11 +22,7 @@ import type {
  */
 export interface PDFDocumentProxy {
   numPages: number;
-  getPage(pageNumber: number): Promise<PDFPageProxy>;
-}
-
-export interface PDFPageProxy {
-  getTextArea(): void;
+  getPage(pageNumber: number): Promise<any>;
 }
 
 /**
@@ -27,9 +31,8 @@ export interface PDFPageProxy {
 export interface SimplePDFReaderUIComponents {
   Card: CardComponent;
   CardContent: React.ComponentType<HTMLAttributes<HTMLDivElement>>;
-  CardFooter: React.ComponentType<HTMLAttributes<HTMLDivElement>>;
   Button: ButtonComponent;
-  Label: LabelComponent;
+  Input?: InputComponent;
   Skeleton: SkeletonComponent;
 }
 
@@ -57,6 +60,7 @@ export interface SimplePDFReaderProps {
   // 功能开关
   showToolbar?: boolean; // 默认 true
   showPagination?: boolean; // 默认 true
+  enableHotkeys?: boolean; // 默认 true
 
   // 样式定制
   className?: string;
@@ -76,78 +80,6 @@ export interface SimplePDFReaderProps {
 }
 
 /**
- * 图标组件
- */
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m15 18-6-6 6-6" />
-  </svg>
-);
-
-const ChevronRightIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
-
-const ZoomInIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-    <path d="m11 8v6" />
-    <path d="m8 11h6" />
-  </svg>
-);
-
-const ZoomOutIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-    <path d="m8 11h6" />
-  </svg>
-);
-
-/**
  * SimplePDFReader 组件
  *
  * 用于在 React 应用中展示和浏览 PDF 文档。
@@ -156,24 +88,28 @@ const ZoomOutIcon = () => (
  * @example
  * ```tsx
  * import { SimplePDFReader } from '@turinhub/atomix-common-ui';
- * import { Card, Button, Label, Skeleton } from '@/components/ui';
+ * import { Card, Button, Skeleton } from '@/components/ui';
  *
  * <SimplePDFReader
  *   url="/documents/sample.pdf"
  *   components={{
  *     Card,
  *     CardContent: Card.Content,
- *     CardFooter: Card.Footer,
  *     Button,
- *     Label,
  *     Skeleton,
  *   }}
  *   initialPage={1}
  *   initialScale={1.0}
  *   showToolbar={true}
  *   showPagination={true}
+ *   enableHotkeys={true}
  *   onPageChange={(page) => console.log('Current page:', page)}
  * />
+ *
+ * Keyboard Shortcuts:
+ * - Arrow Left/Right: Navigate pages
+ * - Ctrl/Cmd + +/-: Zoom in/out
+ * - F: Toggle fullscreen
  * ```
  */
 export function SimplePDFReader({
@@ -188,6 +124,7 @@ export function SimplePDFReader({
   onPageChange,
   showToolbar = true,
   showPagination = true,
+  enableHotkeys = true,
   className,
   containerClassName,
   pageClassName,
@@ -208,6 +145,7 @@ export function SimplePDFReader({
   const [totalPages, setTotalPages] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const readerRef = useRef<HTMLDivElement>(null);
+  const loadingTaskRef = useRef<any>(null);
 
   // 动态导入 react-pdf
   const [ReactPDF, setReactPDF] = useState<any>(null);
@@ -225,25 +163,29 @@ export function SimplePDFReader({
   }, [currentPage, totalPages]);
 
   // 页面导航处理
+  const goToPage = useCallback(
+    (page: number) => {
+      const maxPage = Math.max(totalPages, 1);
+      const targetPage = Math.min(Math.max(page, 1), maxPage);
+      if (controlledPage === undefined) {
+        setInternalPage(targetPage);
+      }
+      onPageChange?.(targetPage);
+    },
+    [totalPages, controlledPage, onPageChange]
+  );
+
   const handlePreviousPage = useCallback(() => {
     if (currentPage > 1) {
-      const newPage = currentPage - 1;
-      if (controlledPage === undefined) {
-        setInternalPage(newPage);
-      }
-      onPageChange?.(newPage);
+      goToPage(currentPage - 1);
     }
-  }, [currentPage, controlledPage, onPageChange]);
+  }, [currentPage, goToPage]);
 
   const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
-      const newPage = currentPage + 1;
-      if (controlledPage === undefined) {
-        setInternalPage(newPage);
-      }
-      onPageChange?.(newPage);
+      goToPage(currentPage + 1);
     }
-  }, [currentPage, totalPages, controlledPage, onPageChange]);
+  }, [currentPage, totalPages, goToPage]);
 
   // 缩放控制处理
   const handleZoomIn = useCallback(() => {
@@ -330,11 +272,17 @@ export function SimplePDFReader({
         // 使用 react-pdf 的 Document 组件内部加载逻辑
         // 我们创建一个加载器来获取 PDF 文档信息
         const loadingTask = (ReactPDF.pdfjs as any).getDocument(url);
+        loadingTaskRef.current = loadingTask;
         const pdf = await loadingTask.promise;
 
         if (isMounted) {
           setPdfDocument(pdf as PDFDocumentProxy);
           setTotalPages(pdf.numPages);
+          if (controlledPage === undefined) {
+            setInternalPage((prev) =>
+              Math.max(1, Math.min(prev, pdf.numPages))
+            );
+          }
           setIsLoading(false);
           onLoadSuccess?.(pdf as PDFDocumentProxy);
         }
@@ -353,6 +301,13 @@ export function SimplePDFReader({
 
     return () => {
       isMounted = false;
+      if (
+        loadingTaskRef.current &&
+        typeof loadingTaskRef.current.destroy === 'function'
+      ) {
+        loadingTaskRef.current.destroy();
+        loadingTaskRef.current = null;
+      }
     };
   }, [ReactPDF, url, onLoadSuccess, onLoadError]);
 
@@ -370,6 +325,61 @@ export function SimplePDFReader({
     };
   }, []);
 
+  // ==================== 键盘快捷键 ====================
+  useEffect(() => {
+    if (!enableHotkeys) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle hotkeys if input is focused
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+          activeElement.getAttribute('role') === 'input')
+      ) {
+        return;
+      }
+
+      // Ctrl/Cmd + 加号: 放大
+      if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        handleZoomIn();
+      }
+      // Ctrl/Cmd + 减号: 缩小
+      else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        handleZoomOut();
+      }
+      // 左箭头: 上一页
+      else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePreviousPage();
+      }
+      // 右箭头: 下一页
+      else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextPage();
+      }
+      // F 键: 全屏切换
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        void handleToggleFullscreen();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    enableHotkeys,
+    handleZoomIn,
+    handleZoomOut,
+    handlePreviousPage,
+    handleNextPage,
+    handleToggleFullscreen,
+  ]);
+
   // ==================== 组件验证和渲染 ====================
 
   // 验证 components
@@ -381,7 +391,13 @@ export function SimplePDFReader({
     );
   }
 
-  const { Card, CardContent, Button, Skeleton } = components;
+  const {
+    Card,
+    CardContent,
+    Button,
+    Input: InputComponentInjected,
+    Skeleton,
+  } = components;
 
   // 渲染工具栏
   const renderToolbar = () => {
@@ -408,12 +424,12 @@ export function SimplePDFReader({
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={() => {
             void handleToggleFullscreen();
           }}
         >
-          {isFullscreen ? '退出全屏' : '全屏'}
+          {isFullscreen ? <Minimize2Icon /> : <Maximize2Icon />}
         </Button>
       </div>
     );
@@ -427,25 +443,38 @@ export function SimplePDFReader({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={handlePreviousPage}
           disabled={currentPage <= 1}
         >
           <ChevronLeftIcon />
-          <span className="ml-1">上一页</span>
         </Button>
-        <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">
-            {currentPage} / {totalPages}
-          </span>
-        </div>
+        {InputComponentInjected ? (
+          <InputComponentInjected
+            type="number"
+            min={1}
+            max={Math.max(totalPages, 1)}
+            value={currentPage}
+            onChange={(e) => goToPage(parseInt(e.target.value, 10) || 1)}
+            className="w-16 text-center"
+          />
+        ) : (
+          <input
+            type="number"
+            min={1}
+            max={Math.max(totalPages, 1)}
+            value={currentPage}
+            onChange={(e) => goToPage(parseInt(e.target.value, 10) || 1)}
+            className="w-16 rounded-md border border-input bg-background px-2 text-center text-sm"
+          />
+        )}
+        <span className="text-sm text-muted-foreground">/ {totalPages}</span>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={handleNextPage}
           disabled={currentPage >= totalPages}
         >
-          <span className="mr-1">下一页</span>
           <ChevronRightIcon />
         </Button>
       </div>

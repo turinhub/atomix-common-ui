@@ -42,7 +42,6 @@ export type ButtonComponent = UIComponent<
  */
 export type InputComponent = UIComponent<
   InputHTMLAttributes<HTMLInputElement> & {
-    value?: string;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }
 >;
@@ -147,3 +146,32 @@ export type DropdownMenuRadioItemComponent = UIComponent<{
  * Skeleton 组件类型
  */
 export type SkeletonComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;
+
+/**
+ * Tabs 组件类型
+ */
+export type TabsComponent = UIComponent<{
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children?: React.ReactNode;
+  defaultValue?: string;
+}>;
+
+export type TabsListComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;
+export type TabsTriggerComponent = UIComponent<
+  HTMLAttributes<HTMLButtonElement> & {
+    value: string;
+    children?: React.ReactNode;
+  }
+>;
+export type TabsContentComponent = UIComponent<
+  HTMLAttributes<HTMLDivElement> & {
+    value: string;
+    children?: React.ReactNode;
+  }
+>;
+
+/**
+ * ScrollArea 组件类型
+ */
+export type ScrollAreaComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;
