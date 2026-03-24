@@ -252,7 +252,7 @@ export function PDFReader({
   const [internalPage, setInternalPage] = useState(initialPage);
   const [internalScale, setInternalScale] = useState(initialScale);
   const [internalRotation, setInternalRotation] = useState(initialRotation);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [totalPages, setTotalPages] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -355,50 +355,6 @@ export function PDFReader({
     };
   }, [workerUrl, cMapUrl, standardFontDataUrl, onLoadError]);
 
-  // ==================== 加载 PDF 文档 ====================
-  useEffect(() => {
-    if (!ReactPDF || !url) return;
-
-    let isMounted = true;
-
-    const loadPDF = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const { Document } = ReactPDF;
-        if (!Document) {
-          throw new Error('react-pdf Document 组件不可用');
-        }
-
-        // 使用 react-pdf 的 Document 组件内部加载逻辑
-        const loadingTask = (ReactPDF.pdfjs as any).getDocument(url);
-        const pdf = await loadingTask.promise;
-
-        if (isMounted) {
-          setPdfDocument(pdf as PDFDocumentProxy);
-          setTotalPages(pdf.numPages);
-          setIsLoading(false);
-          onLoadSuccess?.(pdf as PDFDocumentProxy);
-        }
-      } catch (err) {
-        if (isMounted) {
-          const loadError =
-            err instanceof Error ? err : new Error('PDF 加载失败');
-          setError(loadError);
-          setIsLoading(false);
-          onLoadError?.(loadError);
-        }
-      }
-    };
-
-    loadPDF();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [ReactPDF, url, onLoadSuccess, onLoadError]);
-
   // ==================== 处理加载错误 ====================
   const onDocumentLoadError = useCallback(
     (err: Error) => {
@@ -415,7 +371,8 @@ export function PDFReader({
   // ==================== 页面导航 ====================
   const goToPage = useCallback(
     (page: number) => {
-      const newPage = Math.max(1, Math.min(page, totalPages));
+      const newPage =
+        totalPages > 0 ? Math.max(1, Math.min(page, totalPages)) : page;
       if (controlledPage === undefined) {
         setInternalPage(newPage);
       }
@@ -642,7 +599,7 @@ export function PDFReader({
             variant="outline"
             size="icon"
             onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage >= totalPages}
+            disabled={totalPages > 0 && currentPage >= totalPages}
           >
             <ChevronRightIcon />
           </Button>
@@ -670,7 +627,7 @@ export function PDFReader({
 
   // ==================== 渲染 PDF 文档 ====================
   const renderPDFDocument = () => {
-    if (!ReactPDF) return null;
+    if (!ReactPDF) return renderLoading();
 
     const { Document, Page } = ReactPDF;
 
@@ -681,11 +638,19 @@ export function PDFReader({
       >
         <div className="flex min-h-full justify-center px-4">
           <Document
-            pdf={pdfDocument ?? undefined}
+            file={url}
             onLoadError={onDocumentLoadError}
             options={pdfOptions}
             loading={renderLoading()}
             error={renderError()}
+            onLoadSuccess={(pdf: any) => {
+              if (!pdfDocument) {
+                setPdfDocument(pdf as PDFDocumentProxy);
+                setTotalPages(pdf.numPages);
+                setIsLoading(false);
+                onLoadSuccess?.(pdf as PDFDocumentProxy);
+              }
+            }}
           >
             {error ? (
               renderError()

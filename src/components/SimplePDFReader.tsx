@@ -309,7 +309,7 @@ export function SimplePDFReader({
         loadingTaskRef.current = null;
       }
     };
-  }, [ReactPDF, url, onLoadSuccess, onLoadError]);
+  }, [ReactPDF, url, controlledPage, onLoadSuccess, onLoadError]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
