@@ -27,8 +27,8 @@
 - `src/lib/utils.ts`：通用工具，当前主要是 `cn`。
 - `src/styles.css`：库样式入口。
 - `playground`：本地调试和手动验证入口。
-- `docs`：面向使用者的组件级文档。
-- `DOC`：Agent 工作说明，按需加载。
+- `docs/components`：面向使用者的组件级文档。
+- `docs/agent`：Agent 工作说明，按需加载。
 
 ## 常用命令
 
@@ -75,12 +75,12 @@ Vite 使用 library mode，以 `src/index.ts` 为入口，输出 ES module 和 C
 ## 文档分层
 
 - `Agent.md`：Agent 每次进入项目时的高信号入口。
-- `DOC/*.md`：Agent 按需加载的工作细节。
+- `docs/agent/*.md`：Agent 按需加载的工作细节。
 - `README.md`：包介绍、安装、快速开始和面向用户的概览。
 - `USAGE.md`：面向使用者的完整用法。
-- `docs/*.md`：具体组件的公开文档。
+- `docs/components/*.md`：具体组件的公开文档。
 
-Agent 文档更新时，优先把稳定且每日需要的内容留在 `Agent.md`；把命令细节、组件开发步骤、历史背景、专项风险放入 `DOC`。
+Agent 文档更新时，优先把稳定且每日需要的内容留在 `Agent.md`；把命令细节、组件开发步骤、历史背景、专项风险放入 `docs/agent`。
 
 ## 变更检查清单
 

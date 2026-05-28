@@ -30,7 +30,8 @@
 - `DeleteConfirmDialog`：关注 open 状态、确认回调、验证输入、loading 状态。
 - `ThemeSwitcher`：关注 SSR handling、当前主题图标、自定义主题图标、DropdownMenu 注入。
 - `ThemeSwitcherContent`：关注轻量嵌入场景，不要引入完整下拉触发逻辑。
-- `PDFReader`、`SimplePDFReader`、`PDFSidebar`：见 `DOC/PDF_COMPONENTS.md`。
+- `FileUpload`：关注文件校验、拖拽选择、单/多文件状态、进度回调、失败重试和业务上传函数注入。
+- `PDFReader`、`SimplePDFReader`、`PDFSidebar`：见 `docs/agent/PDF_COMPONENTS.md`。
 
 ## 类型和导出
 
@@ -65,7 +66,7 @@
 
 - API 或用法变动：更新 `USAGE.md`。
 - README 组件列表、快速开始或设计理念变动：更新 `README.md`。
-- PDF 专项用法：更新 `docs/PDFReader.md` 或 `docs/SimplePDFReader.md`。
-- Agent 工作流程变动：更新 `Agent.md` 或 `DOC`。
+- PDF 专项用法：更新 `docs/components/PDFReader.md` 或 `docs/components/SimplePDFReader.md`。
+- Agent 工作流程变动：更新 `Agent.md` 或 `docs/agent`。
 
-公开文档面向用户，`DOC` 面向 Agent。不要把内部工作说明写进 README。
+公开文档面向用户，`docs/agent` 面向 Agent。不要把内部工作说明写进 README。

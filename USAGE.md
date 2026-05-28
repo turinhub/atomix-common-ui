@@ -256,6 +256,29 @@ export const dataTableUI: UIComponents = {
 };
 ```
 
+## 📤 文件上传界面
+
+`FileUpload` 提供标准上传界面，适合接入 Tale JS SDK 的直接上传或两阶段上传流程。
+
+```tsx
+import { FileUpload } from '@turinhub/atomix-common-ui';
+
+<FileUpload
+  components={uploadUI}
+  multiple
+  accept=".pdf,.doc,.docx,image/*"
+  maxSize={20 * 1024 * 1024}
+  onUpload={async (item, { setProgress }) => {
+    setProgress(20);
+    // 调用 uploadAttachment、getUploadAuthorization + fileUploadComplete 等业务上传逻辑
+    setProgress(100);
+    return { fileId: 'file-id' };
+  }}
+/>;
+```
+
+详细文档见 [FileUpload](./docs/components/FileUpload.md)。
+
 ## 📝 API 文档
 
 ### DataTable

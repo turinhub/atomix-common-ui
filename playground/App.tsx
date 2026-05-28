@@ -9,6 +9,7 @@ import { ThemeSwitcher } from '../src/components/ThemeSwitcher';
 import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
 import { SimplePDFReader } from '../src/components/SimplePDFReader';
 import { PDFReader } from '../src/components/PDFReader';
+import { FileUpload } from '../src/components/FileUpload';
 import { Button } from '../src/components/ui/button';
 import { ScrollArea } from '../src/components/ui/scroll-area';
 import { TableHeader as UITableHeader } from '../src/components/ui/table';
@@ -95,7 +96,7 @@ type ThemeMode = (typeof themeOptions)[number]['value'];
 type TableDataVariant = 'all' | 'draft-only' | 'empty';
 type TableActionsVariant = 'none' | 'collapsed' | 'expanded';
 type TablePageSizePreset = 'compact' | 'default' | 'large';
-type PlaygroundPage = 'overview' | 'pdf-reader';
+type PlaygroundPage = 'overview' | 'file-upload' | 'pdf-reader';
 type PDFDisplayMode = 'scroll' | 'single';
 type PDFReaderTab = 'advanced' | 'simple';
 const pageSizeOptionsByPreset: Record<TablePageSizePreset, number[]> = {
@@ -165,6 +166,7 @@ export default function App() {
   const [pdfEnableHotkeys, setPdfEnableHotkeys] = useState(true);
   const [pdfEnableMobileNav, setPdfEnableMobileNav] = useState(true);
   const [pdfShowSidebar, setPdfShowSidebar] = useState(true);
+  const [uploadLog, setUploadLog] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const pageSizeByPresetRef = useRef<Record<TablePageSizePreset, number>>({
@@ -448,6 +450,14 @@ export default function App() {
                 onClick={() => setPlaygroundPage('overview')}
               >
                 综合测试页
+              </Button>
+              <Button
+                type="button"
+                variant={playgroundPage === 'file-upload' ? 'default' : 'ghost'}
+                className="justify-start md:min-w-36 md:justify-center"
+                onClick={() => setPlaygroundPage('file-upload')}
+              >
+                上传界面
               </Button>
               <Button
                 type="button"
@@ -955,6 +965,94 @@ export default function App() {
               </CardContent>
             </Card>
           </>
+        ) : playgroundPage === 'file-upload' ? (
+          <Card className={`rounded-3xl ${glassCard}`}>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white">
+                FileUpload 上传界面
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                模拟 Tale SDK
+                上传链路，验证文件选择、校验、进度、失败重试与完成状态
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <FileUpload
+                components={{
+                  Card,
+                  CardHeader,
+                  CardTitle,
+                  CardDescription,
+                  CardContent,
+                  CardFooter,
+                  Button,
+                }}
+                title="标准上传"
+                description="适合接入 uploadAttachment 或 getUploadAuthorization + fileUploadComplete。"
+                helperText="限制：最多 3 个文件，单文件不超过 20 MB，允许 PDF、Word 和图片。"
+                multiple
+                maxFiles={3}
+                maxSize={20 * 1024 * 1024}
+                accept=".pdf,.doc,.docx,image/*"
+                onUpload={async (item, { setProgress }) => {
+                  setUploadLog((logs) => [
+                    `开始上传 ${item.name}`,
+                    ...logs.slice(0, 5),
+                  ]);
+                  await new Promise((resolve) =>
+                    window.setTimeout(resolve, 240)
+                  );
+                  setProgress(25);
+                  await new Promise((resolve) =>
+                    window.setTimeout(resolve, 240)
+                  );
+                  setProgress(70);
+                  await new Promise((resolve) =>
+                    window.setTimeout(resolve, 240)
+                  );
+                  setProgress(100);
+                  setUploadLog((logs) => [
+                    `完成 ${item.name}，模拟 fileId: demo-${Date.now()}`,
+                    ...logs.slice(0, 5),
+                  ]);
+                  return {
+                    fileId: `demo-${Date.now()}`,
+                    fileName: item.name,
+                    fileSize: item.size,
+                  };
+                }}
+              />
+
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    上传事件
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    用于观察业务上传回调的触发顺序
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {uploadLog.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-sm text-slate-500 dark:text-slate-400">
+                      暂无事件
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {uploadLog.map((log, index) => (
+                        <div
+                          key={`${log}-${index}`}
+                          className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-2 text-sm text-slate-700 dark:border-slate-700/70 dark:bg-slate-900/55 dark:text-slate-200"
+                        >
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
         ) : (
           <Card className={`rounded-3xl ${glassCard}`}>
             <CardHeader>

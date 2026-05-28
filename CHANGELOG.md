@@ -1,82 +1,95 @@
-# Changelog
+# 变更日志
 
-All notable changes to this project will be documented in this file.
+本项目的所有重要变更都会记录在此文件中。
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/spec/v2.0.0.html)。
+
+## [未发布]
+
+### 新增
+
+- 新增 `FileUpload` 标准文件上传界面组件，支持拖拽选择、单/多文件、文件类型和大小校验、上传进度、失败重试与清空。
+- 新增 `FileUpload` 测试用例，覆盖文件选择、校验、上传成功和失败重试。
+- 新增 `docs/components/FileUpload.md`，说明如何接入 Tale JS SDK 的直接上传和两阶段上传流程。
+- 在 playground 中新增上传界面示例页，用于验证上传 UI 的交互状态。
+
+### 变更
+
+- 统一文档目录结构，将 Agent 内部文档迁移到 `docs/agent`，将组件公开文档迁移到 `docs/components`。
+- 更新 `Agent.md`、`README.md` 和 `USAGE.md`，补充 `FileUpload` 与新的文档路径。
 
 ## [0.2.2] - 2026-03-24
 
-### Fixed
+### 修复
 
-- Fixed ESLint warning about missing `controlledPage` dependency in useEffect hook in SimplePDFReader component
-- Unified code formatting standards across the project
-- Optimized PDFReader component code structure and formatting
-- Fixed dependency issues in package.json
+- 修复 `SimplePDFReader` 组件中 `useEffect` hook 缺少 `controlledPage` 依赖导致的 ESLint 警告。
+- 统一项目内代码格式规范。
+- 优化 `PDFReader` 组件代码结构和格式。
+- 修复 `package.json` 中的依赖问题。
 
 ## [0.2.1] - 2026-03-20
 
-### Added
+### 新增
 
-- PDFReader component with advanced PDF viewing features
-- PDFSidebar component with thumbnail and bookmark navigation
-- ScrollArea and Tabs UI components for enhanced functionality
-- Support for page rotation, display modes, and keyboard shortcuts
-- Mobile-responsive navigation controls
-- Comprehensive test coverage for PDFReader and PDFSidebar (37 test cases)
-- Detailed API documentation for PDFReader component
+- 新增 `PDFReader` 组件，提供高级 PDF 阅读能力。
+- 新增 `PDFSidebar` 组件，支持缩略图和书签导航。
+- 新增 `ScrollArea` 和 `Tabs` UI 组件，用于增强功能表现。
+- 支持页面旋转、显示模式切换和键盘快捷键。
+- 支持移动端响应式导航控制。
+- 为 `PDFReader` 和 `PDFSidebar` 补充完整测试覆盖（37 个测试用例）。
+- 新增 `PDFReader` 组件详细 API 文档。
 
-### Changed
+### 变更
 
-- Enhanced SimplePDFReader with improved hotkey support and error handling
-- Updated playground with PDFReader demonstrations
-- Improved type definitions for PDF components
-- Better error handling and loading states across PDF components
+- 增强 `SimplePDFReader` 的快捷键支持和错误处理。
+- 更新 playground，增加 `PDFReader` 演示。
+- 改进 PDF 组件的类型定义。
+- 改进 PDF 组件的错误处理和加载状态。
 
 ## [0.2.0] - 2026-03-19
 
-### Added
+### 新增
 
-- SimplePDFReader component with comprehensive PDF viewing capabilities
-- Support for PDF navigation, zoom controls, and page management
-- Full-screen mode and customizable UI component injection
-- Complete test coverage for SimplePDFReader (19 test cases)
-- Detailed API documentation for SimplePDFReader component
+- 新增 `SimplePDFReader` 组件，提供完整的 PDF 阅读能力。
+- 支持 PDF 导航、缩放控制和页码管理。
+- 支持全屏模式和可定制的 UI 组件注入。
+- 为 `SimplePDFReader` 补充完整测试覆盖（19 个测试用例）。
+- 新增 `SimplePDFReader` 组件详细 API 文档。
 
-### Changed
+### 变更
 
-- Enhanced TablePagination component with improved functionality
-- Updated DataTable component with better integration
-- Improved code formatting and consistency across all files
-- Updated playground examples with new component demonstrations
+- 增强 `TablePagination` 组件功能。
+- 改进 `DataTable` 组件集成。
+- 改进所有文件的代码格式和一致性。
+- 更新 playground 示例，增加新组件演示。
 
 ## [0.1.2] - 2026-03-16
 
-### Added
+### 新增
 
-- ThemeSwitcher component with dropdown menu support
-- ThemeSwitcherContent component for embedding in existing dropdowns
-- Theme icons and labels customization support
-- Radio group pattern for theme selection
-- Complete test coverage for ThemeSwitcher and ThemeSwitcherContent
+- 新增 `ThemeSwitcher` 组件，支持下拉菜单。
+- 新增 `ThemeSwitcherContent` 组件，可嵌入现有下拉菜单。
+- 支持自定义主题图标和标签。
+- 使用单选组模式进行主题选择。
+- 为 `ThemeSwitcher` 和 `ThemeSwitcherContent` 补充完整测试覆盖。
 
-### Changed
+### 变更
 
-- Enhanced playground with theme switcher demonstrations
-- Updated API documentation with ThemeSwitcher components
+- 增强 playground，增加主题切换演示。
+- 更新 API 文档，补充 `ThemeSwitcher` 相关组件。
 
 ## [0.1.0] - 2026-03-16
 
-### Added
+### 新增
 
-- Initial release
-- DataTable component with pagination and actions
-- TableHeader component with search functionality
-- TablePagination component with page size selector
-- DeleteConfirmDialog component with verification
-- Full TypeScript support
-- Tailwind CSS integration
-- Component injection pattern for maximum flexibility
-- DataTable action-column test coverage for current `actions` API
-- Usage examples for `TableHeaderComponent` and `TablePaginationComponent` injection
-- Explicit type-export usage examples aligned with the public API
+- 初始版本发布。
+- 新增 `DataTable` 组件，支持分页和操作列。
+- 新增 `TableHeader` 组件，支持搜索功能。
+- 新增 `TablePagination` 组件，支持每页条数选择。
+- 新增 `DeleteConfirmDialog` 组件，支持验证确认。
+- 完整 TypeScript 支持。
+- Tailwind CSS 集成。
+- 采用组件注入模式，提供最大灵活性。
+- 为当前 `actions` API 补充 `DataTable` 操作列测试覆盖。
+- 补充 `TableHeaderComponent` 和 `TablePaginationComponent` 注入使用示例。
+- 补充与公开 API 对齐的显式类型导出使用示例。

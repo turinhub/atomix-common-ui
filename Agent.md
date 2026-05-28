@@ -29,8 +29,8 @@ pnpm build
 - `src/types/component-types.ts`：可注入 UI 组件的通用类型
 - `src/index.ts`：组件、类型和工具函数的包入口
 - `playground`：本地演示与调试入口
-- `docs`：面向使用者的组件文档
-- `DOC`：Agent 按需加载的项目工作文档
+- `docs/components`：面向使用者的组件文档
+- `docs/agent`：Agent 按需加载的项目工作文档
 
 ## 必守约定
 
@@ -44,14 +44,14 @@ pnpm build
 
 ## 需要时加载
 
-- 项目结构、命令、依赖、构建发布细节：`DOC/PROJECT.md`
-- 组件注入、组件开发步骤、测试策略：`DOC/COMPONENT_GUIDE.md`
-- PDF 组件专项说明与常见风险：`DOC/PDF_COMPONENTS.md`
-- 公开使用文档来源：`README.md`、`USAGE.md`、`docs/PDFReader.md`、`docs/SimplePDFReader.md`
+- 项目结构、命令、依赖、构建发布细节：`docs/agent/PROJECT.md`
+- 组件注入、组件开发步骤、测试策略：`docs/agent/COMPONENT_GUIDE.md`
+- PDF 组件专项说明与常见风险：`docs/agent/PDF_COMPONENTS.md`
+- 公开使用文档来源：`README.md`、`USAGE.md`、`docs/components/PDFReader.md`、`docs/components/SimplePDFReader.md`
 
 ## 常见任务入口
 
-- 新增组件：先看 `DOC/COMPONENT_GUIDE.md`，再参考 `DataTable` 或 `ThemeSwitcherContent` 的导出和测试方式。
-- 修改 DataTable、TableHeader、TablePagination、DeleteConfirmDialog、ThemeSwitcher：先看对应组件和测试，再看 `DOC/COMPONENT_GUIDE.md`。
-- 修改 PDFReader、SimplePDFReader、PDFSidebar：先看 `DOC/PDF_COMPONENTS.md`，再看用户文档和测试。
-- 修改构建、依赖、发布字段：先看 `DOC/PROJECT.md`，再检查 `package.json`、`vite.config.ts`、`tsconfig.json`。
+- 新增组件：先看 `docs/agent/COMPONENT_GUIDE.md`，再参考 `DataTable` 或 `ThemeSwitcherContent` 的导出和测试方式。
+- 修改 DataTable、TableHeader、TablePagination、DeleteConfirmDialog、ThemeSwitcher：先看对应组件和测试，再看 `docs/agent/COMPONENT_GUIDE.md`。
+- 修改 PDFReader、SimplePDFReader、PDFSidebar：先看 `docs/agent/PDF_COMPONENTS.md`，再看用户文档和测试。
+- 修改构建、依赖、发布字段：先看 `docs/agent/PROJECT.md`，再检查 `package.json`、`vite.config.ts`、`tsconfig.json`。

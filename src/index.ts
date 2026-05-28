@@ -11,6 +11,7 @@ export { ThemeSwitcherContent } from './components/ThemeSwitcherContent';
 export { SimplePDFReader } from './components/SimplePDFReader';
 export { PDFReader } from './components/PDFReader';
 export { PDFSidebar } from './components/PDFSidebar';
+export { FileUpload } from './components/FileUpload';
 
 // Types
 export type {
@@ -54,6 +55,13 @@ export type {
   PDFViewport,
   PDFOutline,
 } from './components/PDFSidebar';
+export type {
+  FileUploadProps,
+  FileUploadUIComponents,
+  FileUploadItem,
+  FileUploadStatus,
+  FileUploadHelpers,
+} from './components/FileUpload';
 
 // Component Types
 export type {

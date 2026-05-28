@@ -104,6 +104,7 @@ import { dataTableUI } from '@/lib/ui-adapter';
 - **TablePagination** - 分页组件
 - **ThemeSwitcher** - 主题切换组件（完整版，支持下拉菜单）
 - **ThemeSwitcherContent** - 主题切换内容组件（轻量版，可嵌入）
+- **FileUpload** - 标准文件上传界面（支持拖拽、校验、进度、失败重试，可接入 Tale SDK 上传流程）
 - **SimplePDFReader** - 轻量级 PDF 阅读器组件
 - **PDFReader** - 功能完整的 PDF 阅读器组件（包含侧边栏导航、页面旋转等高级功能）
 - **PDFSidebar** - PDF 侧边栏导航组件（缩略图和书签）
@@ -173,6 +174,9 @@ import type {
   ThemeSwitcherContentProps,
   ThemeSwitcherContentUIComponents,
   ThemeOption,
+  FileUploadProps,
+  FileUploadUIComponents,
+  FileUploadItem,
   SimplePDFReaderProps,
   SimplePDFReaderUIComponents,
   PDFReaderProps,

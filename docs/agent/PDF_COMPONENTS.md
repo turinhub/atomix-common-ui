@@ -8,8 +8,8 @@
 
 公开用户文档在：
 
-- `docs/SimplePDFReader.md`
-- `docs/PDFReader.md`
+- `docs/components/SimplePDFReader.md`
+- `docs/components/PDFReader.md`
 
 ## 依赖和外部资源
 
