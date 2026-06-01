@@ -15,6 +15,7 @@ const entry = {
   'simple-pdf-reader': resolve(__dirname, 'src/simple-pdf-reader.ts'),
   'pdf-reader': resolve(__dirname, 'src/pdf-reader.ts'),
   'pdf-sidebar': resolve(__dirname, 'src/pdf-sidebar.ts'),
+  'markdown-reader': resolve(__dirname, 'src/markdown-reader.ts'),
   utils: resolve(__dirname, 'src/utils.ts'),
   'component-types': resolve(__dirname, 'src/component-types.ts'),
 };
@@ -48,6 +49,8 @@ export default defineConfig({
         'class-variance-authority',
         'clsx',
         'lucide-react',
+        'react-markdown',
+        'remark-gfm',
         'tailwind-merge',
       ],
       output: {

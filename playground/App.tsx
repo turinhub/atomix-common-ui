@@ -10,6 +10,7 @@ import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
 import { SimplePDFReader } from '../src/components/SimplePDFReader';
 import { PDFReader } from '../src/components/PDFReader';
 import { FileUpload } from '../src/components/FileUpload';
+import { MarkdownReader } from '../src/components/MarkdownReader';
 import { Button } from '../src/components/ui/button';
 import { ScrollArea } from '../src/components/ui/scroll-area';
 import { TableHeader as UITableHeader } from '../src/components/ui/table';
@@ -96,9 +97,14 @@ type ThemeMode = (typeof themeOptions)[number]['value'];
 type TableDataVariant = 'all' | 'draft-only' | 'empty';
 type TableActionsVariant = 'none' | 'collapsed' | 'expanded';
 type TablePageSizePreset = 'compact' | 'default' | 'large';
-type PlaygroundPage = 'overview' | 'file-upload' | 'pdf-reader';
+type PlaygroundPage =
+  | 'overview'
+  | 'file-upload'
+  | 'markdown-reader'
+  | 'pdf-reader';
 type PDFDisplayMode = 'scroll' | 'single';
 type PDFReaderTab = 'advanced' | 'simple';
+type MarkdownReaderState = 'content' | 'source' | 'loading' | 'error' | 'empty';
 const pageSizeOptionsByPreset: Record<TablePageSizePreset, number[]> = {
   compact: [2, 4, 8],
   default: [5, 10, 20],
@@ -115,6 +121,47 @@ const pdfPresetUrls = [
       'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   },
 ] as const;
+const markdownSample = `# MarkdownReader
+
+用于在线阅读 Markdown 内容，覆盖文档、公告和任务详情等只读场景。
+
+## GFM 能力
+
+- [x] 表格
+- [x] 任务列表
+- [x] 代码块
+- [x] 图片和链接
+
+| 字段 | 说明 |
+| --- | --- |
+| content | 本地 Markdown 文本 |
+| sourceUrl | 远程 Markdown 地址 |
+
+> 默认不渲染 raw HTML，降低不可信内容直接注入页面的风险。
+
+\`\`\`tsx
+import { MarkdownReader } from '@turinhub/atomix-common-ui/components/MarkdownReader';
+
+<MarkdownReader content={markdown} />
+\`\`\`
+
+![TurinHub](https://dummyimage.com/960x320/0891b2/ffffff&text=MarkdownReader)
+
+[查看示例链接](https://example.com)
+`;
+const markdownSourceUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent(
+  `# Source URL 示例
+
+这段内容通过 \`sourceUrl\` 加载，用于验证远程 Markdown 渲染流程。
+
+- 支持 fetch 文本
+- 支持 GFM 表格
+
+| 来源 | 状态 |
+| --- | --- |
+| data URL | loaded |
+`
+)}`;
 
 const themeIcons = themeOptions.reduce(
   (acc, option) => {
@@ -159,6 +206,8 @@ export default function App() {
   const [pdfDisplayMode, setPdfDisplayMode] =
     useState<PDFDisplayMode>('scroll');
   const [pdfReaderTab, setPdfReaderTab] = useState<PDFReaderTab>('advanced');
+  const [markdownReaderState, setMarkdownReaderState] =
+    useState<MarkdownReaderState>('content');
   const [pdfShowToolbar, setPdfShowToolbar] = useState(true);
   const [pdfShowRotation, setPdfShowRotation] = useState(true);
   const [pdfShowModeToggle, setPdfShowModeToggle] = useState(true);
@@ -458,6 +507,16 @@ export default function App() {
                 onClick={() => setPlaygroundPage('file-upload')}
               >
                 上传界面
+              </Button>
+              <Button
+                type="button"
+                variant={
+                  playgroundPage === 'markdown-reader' ? 'default' : 'ghost'
+                }
+                className="justify-start md:min-w-36 md:justify-center"
+                onClick={() => setPlaygroundPage('markdown-reader')}
+              >
+                MarkdownReader
               </Button>
               <Button
                 type="button"
@@ -1051,6 +1110,82 @@ export default function App() {
                   )}
                 </CardContent>
               </Card>
+            </CardContent>
+          </Card>
+        ) : playgroundPage === 'markdown-reader' ? (
+          <Card className={`rounded-3xl ${glassCard}`}>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white">
+                MarkdownReader 测试页
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                验证本地内容、远程加载、GFM、图片链接和状态渲染
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    渲染状态
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    切换不同输入和状态，便于快速回归 MarkdownReader
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-3 md:grid-cols-5">
+                    {[
+                      ['content', '本地内容'],
+                      ['source', 'sourceUrl'],
+                      ['loading', '加载态'],
+                      ['error', '错误态'],
+                      ['empty', '空状态'],
+                    ].map(([value, label]) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant={
+                          markdownReaderState === value ? 'default' : 'outline'
+                        }
+                        onClick={() =>
+                          setMarkdownReaderState(value as MarkdownReaderState)
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <MarkdownReader
+                components={{
+                  Card,
+                  CardContent,
+                  Skeleton,
+                }}
+                content={
+                  markdownReaderState === 'content'
+                    ? markdownSample
+                    : markdownReaderState === 'empty'
+                      ? ''
+                      : undefined
+                }
+                sourceUrl={
+                  markdownReaderState === 'source'
+                    ? markdownSourceUrl
+                    : undefined
+                }
+                loading={markdownReaderState === 'loading'}
+                error={
+                  markdownReaderState === 'error'
+                    ? '这是一个外部注入的 Markdown 错误状态'
+                    : null
+                }
+                className={`rounded-2xl ${glassCardSub}`}
+                contentClassName="p-2"
+                emptyText="当前没有 Markdown 内容"
+              />
             </CardContent>
           </Card>
         ) : (

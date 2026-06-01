@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-01
+
 ### 破坏性变更
 
 - 根入口 `@turinhub/atomix-common-ui` 不再导出业务组件，组件集成方需要改用组件级 kebab-case 子路径导入，例如 `@turinhub/atomix-common-ui/data-table`、`@turinhub/atomix-common-ui/pdf-reader`。
@@ -13,6 +15,11 @@
 ### 新增
 
 - 新增组件级子路径导出，覆盖 `data-table`、`delete-confirm-dialog`、`table-header`、`table-pagination`、`theme-switcher`、`theme-switcher-content`、`file-upload`、`simple-pdf-reader`、`pdf-reader`、`pdf-sidebar`、`utils` 和 `component-types`。
+- 新增 `MarkdownReader` 组件，支持本地 Markdown 文本、`sourceUrl` 远程加载、GFM 表格、任务列表、链接、图片、代码块、加载态、错误态和空状态。
+- 新增 `MarkdownReader` 子路径导出，支持 `@turinhub/atomix-common-ui/markdown-reader` 和 `@turinhub/atomix-common-ui/components/MarkdownReader`。
+- 新增 `MarkdownReader` 测试用例，覆盖 GFM 渲染、远程加载、链接图片策略、状态渲染和依赖加载失败。
+- 新增 `docs/components/MarkdownReader.md`，说明组件接入、可选依赖、URL 加载、链接图片处理和 UI 注入。
+- 在 playground 中新增 `MarkdownReader` 示例页，用于验证本地内容、远程加载、加载态、错误态和空状态。
 
 ### 变更
 
@@ -26,6 +33,7 @@
 
 - 修复 `PDFReader` 切换 `url` 后旧文档状态未正确重置的问题。
 - 修复 `PDFReader` 快捷键在输入类元素聚焦时仍会触发翻页或缩放的问题。
+- 修复 `MarkdownReader` 在父组件传入新的 `onLoadError` 回调引用时重复加载运行时依赖或重新请求 `sourceUrl` 的问题。
 
 ## [0.3.0] - 2026-05-28
 

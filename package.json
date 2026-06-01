@@ -1,6 +1,6 @@
 {
   "name": "@turinhub/atomix-common-ui",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Common UI components for TurinHub projects",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -117,6 +117,26 @@
         "default": "./dist/pdf-sidebar.cjs"
       }
     },
+    "./markdown-reader": {
+      "import": {
+        "types": "./dist/markdown-reader.d.ts",
+        "default": "./dist/markdown-reader.js"
+      },
+      "require": {
+        "types": "./dist/markdown-reader.d.ts",
+        "default": "./dist/markdown-reader.cjs"
+      }
+    },
+    "./components/MarkdownReader": {
+      "import": {
+        "types": "./dist/markdown-reader.d.ts",
+        "default": "./dist/markdown-reader.js"
+      },
+      "require": {
+        "types": "./dist/markdown-reader.d.ts",
+        "default": "./dist/markdown-reader.cjs"
+      }
+    },
     "./utils": {
       "import": {
         "types": "./dist/utils.d.ts",
@@ -171,8 +191,24 @@
     "pdfjs-dist": "^5.4.296",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-pdf": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pdfjs-dist": {
+      "optional": true
+    },
+    "react-markdown": {
+      "optional": true
+    },
+    "react-pdf": {
+      "optional": true
+    },
+    "remark-gfm": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.0",
@@ -195,6 +231,8 @@
     "pdfjs-dist": "5.4.296",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.7.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.6.0",
