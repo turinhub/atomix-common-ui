@@ -279,6 +279,25 @@ import { FileUpload } from '@turinhub/atomix-common-ui';
 
 详细文档见 [FileUpload](./docs/components/FileUpload.md)。
 
+## 📖 PDF 阅读器
+
+`PDFReader` 和 `SimplePDFReader` 是 PDF 专项阅读组件，不是通用文件预览器。`PDFReader` 默认使用单页模式以降低大文件初始渲染压力，侧边栏缩略图会优先生成当前页附近，并在滚动到更多占位项时继续懒生成。
+
+```tsx
+import { PDFReader } from '@turinhub/atomix-common-ui';
+
+<PDFReader
+  url="/documents/sample.pdf"
+  displayMode="single"
+  workerUrl="/pdf.worker.min.mjs"
+  cMapUrl="/cmaps/"
+  standardFontDataUrl="/standard_fonts/"
+  components={pdfReaderUI}
+/>;
+```
+
+内网、私有化、离线或严格 CSP 环境建议传入本地 `workerUrl`、`cMapUrl` 和 `standardFontDataUrl`。详细文档见 [PDFReader](./docs/components/PDFReader.md)。
+
 ## 📝 API 文档
 
 ### DataTable

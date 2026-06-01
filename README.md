@@ -106,8 +106,10 @@ import { dataTableUI } from '@/lib/ui-adapter';
 - **ThemeSwitcherContent** - 主题切换内容组件（轻量版，可嵌入）
 - **FileUpload** - 标准文件上传界面（支持拖拽、校验、进度、失败重试，可接入 Tale SDK 上传流程）
 - **SimplePDFReader** - 轻量级 PDF 阅读器组件
-- **PDFReader** - 功能完整的 PDF 阅读器组件（包含侧边栏导航、页面旋转等高级功能）
-- **PDFSidebar** - PDF 侧边栏导航组件（缩略图和书签）
+- **PDFReader** - 功能完整的 PDF 阅读器组件（默认单页阅读，包含侧边栏导航、页面旋转等高级功能）
+- **PDFSidebar** - PDF 侧边栏导航组件（当前页附近和滚动可见缩略图懒加载、书签）
+
+> 当前 Reader 能力是 PDF 专项能力；Word、Excel、PPT、图片、视频等其他文件类型需要由业务侧自行预览或另行扩展。
 
 ## 📁 项目结构
 

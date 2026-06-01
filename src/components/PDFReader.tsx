@@ -113,7 +113,7 @@ export interface PDFReaderProps {
   enableMobileNav?: boolean;
 
   // ==================== 显示模式 ====================
-  /** 显示模式: 'scroll' 显示所有页面, 'single' 单页模式 (默认 'scroll') */
+  /** 显示模式: 'scroll' 显示所有页面, 'single' 单页模式 (默认 'single') */
   displayMode?: 'scroll' | 'single';
 
   // ==================== 样式定制 ====================
@@ -231,7 +231,7 @@ export function PDFReader({
   showFullscreen = true,
   enableHotkeys = true,
   enableMobileNav = true,
-  displayMode: initialDisplayMode = 'scroll',
+  displayMode: initialDisplayMode = 'single',
   className,
   toolbarClassName,
   contentClassName,
@@ -273,14 +273,27 @@ export function PDFReader({
 
   const readerRef = useRef<HTMLDivElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   // 使用受控或非受控模式
   const currentPage = controlledPage ?? internalPage;
   const scale = controlledScale ?? internalScale;
   const rotation = controlledRotation ?? internalRotation;
+  const isPageControlled = controlledPage !== undefined;
+  const isScrollMode = showAllPages;
 
   // ==================== 组件解构 ====================
   const { Card, CardContent, Button, Input, Skeleton } = components || {};
+
+  useEffect(() => {
+    setPdfDocument(null);
+    setTotalPages(0);
+    setError(null);
+    setIsLoading(false);
+    if (!isPageControlled) {
+      setInternalPage(Math.max(1, initialPage));
+    }
+  }, [url, initialPage, isPageControlled]);
 
   // ==================== PDF 选项 ====================
   const pdfOptions = useMemo(() => {
@@ -360,26 +373,84 @@ export function PDFReader({
     (err: Error) => {
       console.error('PDF加载失败:', err);
       console.error('PDF URL:', url);
+      setPdfDocument(null);
+      setTotalPages(0);
       setError(
         new Error(`${errorText}: ${err.message || '请检查文件路径或网络连接'}`)
       );
+      setIsLoading(false);
       onLoadError?.(err);
     },
     [url, errorText, onLoadError]
   );
 
+  const onDocumentLoadSuccess = useCallback(
+    (pdf: PDFDocumentProxy) => {
+      setPdfDocument(pdf);
+      setTotalPages(pdf.numPages);
+      setError(null);
+      setIsLoading(false);
+
+      if (!isPageControlled) {
+        setInternalPage((page) =>
+          Math.max(1, Math.min(page, Math.max(pdf.numPages, 1)))
+        );
+      }
+
+      onLoadSuccess?.(pdf);
+    },
+    [isPageControlled, onLoadSuccess]
+  );
+
   // ==================== 页面导航 ====================
   const goToPage = useCallback(
     (page: number) => {
+      if (!Number.isFinite(page)) return;
       const newPage =
-        totalPages > 0 ? Math.max(1, Math.min(page, totalPages)) : page;
-      if (controlledPage === undefined) {
+        totalPages > 0
+          ? Math.max(1, Math.min(Math.trunc(page), totalPages))
+          : Math.max(1, Math.trunc(page));
+      if (!isPageControlled) {
         setInternalPage(newPage);
       }
-      onPageChange?.(newPage);
+      if (newPage !== currentPage) {
+        onPageChange?.(newPage);
+      }
     },
-    [totalPages, controlledPage, onPageChange]
+    [totalPages, isPageControlled, currentPage, onPageChange]
   );
+
+  const setPageRef = useCallback(
+    (pageNumber: number, element: HTMLDivElement | null) => {
+      if (element) {
+        pageRefs.current.set(pageNumber, element);
+      } else {
+        pageRefs.current.delete(pageNumber);
+      }
+    },
+    []
+  );
+
+  const syncScrollModeCurrentPage = useCallback(() => {
+    const container = pdfContainerRef.current;
+    if (!container || !isScrollMode || totalPages <= 0) return;
+
+    const containerTop = container.getBoundingClientRect().top;
+    let closestPage = currentPage;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    pageRefs.current.forEach((element, pageNumber) => {
+      const distance = Math.abs(element.getBoundingClientRect().top - containerTop);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPage = pageNumber;
+      }
+    });
+
+    if (closestPage !== currentPage) {
+      goToPage(closestPage);
+    }
+  }, [currentPage, goToPage, isScrollMode, totalPages]);
 
   // ==================== 缩放控制 ====================
   const zoom = useCallback(
@@ -436,6 +507,26 @@ export function PDFReader({
     if (!enableHotkeys) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const activeElement =
+        typeof document !== 'undefined'
+          ? (document.activeElement as HTMLElement | null)
+          : null;
+      const focusedElement = target || activeElement;
+      const role = focusedElement?.getAttribute('role');
+
+      if (
+        focusedElement &&
+        (focusedElement.tagName === 'INPUT' ||
+          focusedElement.tagName === 'TEXTAREA' ||
+          focusedElement.tagName === 'SELECT' ||
+          focusedElement.isContentEditable ||
+          role === 'textbox' ||
+          role === 'spinbutton')
+      ) {
+        return;
+      }
+
       // Ctrl/Cmd + 加号: 放大
       if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
         e.preventDefault();
@@ -447,12 +538,12 @@ export function PDFReader({
         zoom(-0.1);
       }
       // 左箭头: 上一页
-      else if (e.key === 'ArrowLeft') {
+      else if (!isScrollMode && e.key === 'ArrowLeft') {
         e.preventDefault();
         goToPage(currentPage - 1);
       }
       // 右箭头: 下一页
-      else if (e.key === 'ArrowRight') {
+      else if (!isScrollMode && e.key === 'ArrowRight') {
         e.preventDefault();
         goToPage(currentPage + 1);
       }
@@ -462,7 +553,7 @@ export function PDFReader({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [enableHotkeys, currentPage, goToPage, zoom]);
+  }, [enableHotkeys, currentPage, goToPage, isScrollMode, zoom]);
 
   // ==================== 全屏切换 ====================
   const toggleFullscreen = useCallback(async () => {
@@ -576,14 +667,16 @@ export function PDFReader({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage <= 1}
-          >
-            <ChevronLeftIcon />
-          </Button>
+          {!isScrollMode && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeftIcon />
+            </Button>
+          )}
 
           <Input
             type="number"
@@ -591,18 +684,23 @@ export function PDFReader({
             max={totalPages}
             value={currentPage}
             onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
+            disabled={isScrollMode}
+            readOnly={isScrollMode}
+            title={isScrollMode ? '滚动模式下页码仅显示当前位置' : undefined}
             className="w-16 text-center"
           />
           <span className="text-sm text-muted-foreground">/ {totalPages}</span>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={totalPages > 0 && currentPage >= totalPages}
-          >
-            <ChevronRightIcon />
-          </Button>
+          {!isScrollMode && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={totalPages > 0 && currentPage >= totalPages}
+            >
+              <ChevronRightIcon />
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -634,23 +732,18 @@ export function PDFReader({
     return (
       <div
         ref={pdfContainerRef}
+        onScroll={isScrollMode ? syncScrollModeCurrentPage : undefined}
         className={`pdf-container flex-1 overflow-y-auto ${contentClassName || ''}`}
       >
         <div className="flex min-h-full justify-center px-4">
           <Document
+            key={url}
             file={url}
             onLoadError={onDocumentLoadError}
             options={pdfOptions}
             loading={renderLoading()}
             error={renderError()}
-            onLoadSuccess={(pdf: any) => {
-              if (!pdfDocument) {
-                setPdfDocument(pdf as PDFDocumentProxy);
-                setTotalPages(pdf.numPages);
-                setIsLoading(false);
-                onLoadSuccess?.(pdf as PDFDocumentProxy);
-              }
-            }}
+            onLoadSuccess={onDocumentLoadSuccess}
           >
             {error ? (
               renderError()
@@ -659,6 +752,8 @@ export function PDFReader({
               Array.from(new Array(totalPages), (_el, index) => (
                 <div
                   key={`page_${index + 1}`}
+                  ref={(element) => setPageRef(index + 1, element)}
+                  data-page-number={index + 1}
                   className={`mb-4 ${pageClassName || ''}`}
                 >
                   <Page
@@ -718,7 +813,7 @@ export function PDFReader({
 
   // ==================== 渲染移动端导航 ====================
   const renderMobileNav = () => {
-    if (!enableMobileNav) return null;
+    if (!enableMobileNav || isScrollMode) return null;
 
     return (
       <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2 md:hidden">
@@ -726,7 +821,8 @@ export function PDFReader({
           variant="secondary"
           size="sm"
           onClick={() => goToPage(currentPage - 1)}
-          disabled={currentPage <= 1}
+          disabled={isScrollMode || currentPage <= 1}
+          title={isScrollMode ? '滚动模式下通过滚动定位页面' : undefined}
         >
           <ChevronLeftIcon />
           <span className="ml-1">上一页</span>
@@ -735,7 +831,8 @@ export function PDFReader({
           variant="secondary"
           size="sm"
           onClick={() => goToPage(currentPage + 1)}
-          disabled={currentPage >= totalPages}
+          disabled={isScrollMode || currentPage >= totalPages}
+          title={isScrollMode ? '滚动模式下通过滚动定位页面' : undefined}
         >
           <span className="mr-1">下一页</span>
           <ChevronRightIcon />

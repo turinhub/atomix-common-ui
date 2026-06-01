@@ -227,7 +227,7 @@ function ControlledSimplePDFReader() {
 
 1. **CORS 问题**：确保 PDF 文件服务器正确配置了 CORS 头
 2. **文件大小**：对于大文件，建议使用分片加载或服务端渲染
-3. **Worker 配置**：组件会自动配置 PDF.js worker，使用 CDN 加载
+3. **Worker 配置**：组件会自动配置 PDF.js worker，默认使用 CDN 加载；内网、私有化、离线或严格 CSP 环境建议改用 `PDFReader` 并显式传入本地 worker、CMap 和字体资源
 4. **浏览器兼容性**：需要支持现代浏览器（Chrome、Firefox、Safari、Edge）
 
 ## TypeScript 类型

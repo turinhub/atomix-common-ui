@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -188,6 +188,173 @@ describe('PDFSidebar', () => {
     expect(screen.getByText(/第 2 页/)).toBeInTheDocument();
   });
 
+  it('初始不应该同步生成所有页缩略图', async () => {
+    const mockPDF = createMockPDFDocument(20);
+    const mockComponents = createMockComponents();
+
+    render(
+      <PDFSidebar
+        pdfDocument={mockPDF as any}
+        currentPage={1}
+        onPageClick={vi.fn()}
+        components={mockComponents as any}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockPDF.getPage).toHaveBeenCalled();
+    });
+
+    expect(mockPDF.getPage).toHaveBeenCalledWith(1);
+    expect(mockPDF.getPage).toHaveBeenCalledWith(2);
+    expect(mockPDF.getPage).toHaveBeenCalledWith(3);
+    expect(mockPDF.getPage).not.toHaveBeenCalledWith(4);
+  });
+
+  it('当前页变化时应该懒生成邻近缩略图', async () => {
+    const mockPDF = createMockPDFDocument(20);
+    const mockComponents = createMockComponents();
+
+    const { rerender } = render(
+      <PDFSidebar
+        pdfDocument={mockPDF as any}
+        currentPage={1}
+        onPageClick={vi.fn()}
+        components={mockComponents as any}
+      />
+    );
+
+    await screen.findByAltText('Page 1');
+
+    rerender(
+      <PDFSidebar
+        pdfDocument={mockPDF as any}
+        currentPage={10}
+        onPageClick={vi.fn()}
+        components={mockComponents as any}
+      />
+    );
+
+    await waitFor(() => {
+      expect(mockPDF.getPage).toHaveBeenCalledWith(10);
+    });
+
+    await screen.findByAltText('Page 10');
+  });
+
+  it('缩略图占位进入视口时应该加载对应页面', async () => {
+    const originalIntersectionObserver = globalThis.IntersectionObserver;
+    const observedElements: Element[] = [];
+    let intersectionCallback:
+      | ((entries: Partial<IntersectionObserverEntry>[]) => void)
+      | undefined;
+
+    globalThis.IntersectionObserver = class IntersectionObserver {
+      constructor(callback: (entries: IntersectionObserverEntry[]) => void) {
+        intersectionCallback = callback as (
+          entries: Partial<IntersectionObserverEntry>[]
+        ) => void;
+      }
+
+      disconnect() {}
+      observe(element: Element) {
+        observedElements.push(element);
+      }
+      takeRecords() {
+        return [];
+      }
+      unobserve() {}
+    } as any;
+
+    const mockPDF = createMockPDFDocument(20);
+    const mockComponents = createMockComponents();
+
+    try {
+      render(
+        <PDFSidebar
+          pdfDocument={mockPDF as any}
+          currentPage={1}
+          onPageClick={vi.fn()}
+          components={mockComponents as any}
+        />
+      );
+
+      await waitFor(() => {
+        expect(mockPDF.getPage).toHaveBeenCalledWith(1);
+      });
+
+      expect(mockPDF.getPage).not.toHaveBeenCalledWith(10);
+
+      const page10Placeholder = screen
+        .getByText(/第 10 页/)
+        .closest('[data-page-number="10"]');
+      expect(page10Placeholder).toBeInTheDocument();
+      expect(observedElements).toContain(page10Placeholder);
+
+      act(() => {
+        intersectionCallback?.([
+          {
+            isIntersecting: true,
+            target: page10Placeholder as Element,
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(mockPDF.getPage).toHaveBeenCalledWith(10);
+      });
+
+      await screen.findByAltText('Page 10');
+    } finally {
+      globalThis.IntersectionObserver = originalIntersectionObserver;
+    }
+  });
+
+  it('文档切换时旧缩略图任务不应该更新到新文档', async () => {
+    let resolveOldPage: ((page: any) => void) | undefined;
+    const oldPDF = {
+      ...createMockPDFDocument(1),
+      getPage: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            resolveOldPage = resolve;
+          })
+      ),
+    };
+    const nextPDF = createMockPDFDocument(1);
+    const mockComponents = createMockComponents();
+
+    const { rerender } = render(
+      <PDFSidebar
+        pdfDocument={oldPDF as any}
+        currentPage={1}
+        onPageClick={vi.fn()}
+        components={mockComponents as any}
+      />
+    );
+
+    await waitFor(() => {
+      expect(oldPDF.getPage).toHaveBeenCalledWith(1);
+    });
+
+    rerender(
+      <PDFSidebar
+        pdfDocument={nextPDF as any}
+        currentPage={1}
+        onPageClick={vi.fn()}
+        components={mockComponents as any}
+      />
+    );
+
+    resolveOldPage?.({
+      getViewport: vi.fn(() => ({ width: 192, height: 256 })),
+      render: vi.fn(() => ({ promise: Promise.resolve() })),
+    });
+
+    await screen.findByAltText('Page 1');
+    expect(nextPDF.getPage).toHaveBeenCalledWith(1);
+  });
+
   it('应该高亮当前页的缩略图', async () => {
     const mockPDF = createMockPDFDocument();
     const mockComponents = createMockComponents();
@@ -201,12 +368,12 @@ describe('PDFSidebar', () => {
       />
     );
 
-    // Wait for thumbnails to load
-    const thumbnail2 = await screen.findByText(/第 2 页/);
-    expect(thumbnail2).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/第 2 页/)).toBeInTheDocument();
+    });
 
     // Check that the parent has the highlight class
-    const thumbnailContainer = thumbnail2.closest('.flex');
+    const thumbnailContainer = screen.getByText(/第 2 页/).closest('.flex');
     expect(thumbnailContainer).toHaveClass('bg-primary/10');
   });
 

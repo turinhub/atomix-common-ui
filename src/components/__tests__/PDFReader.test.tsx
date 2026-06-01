@@ -1,4 +1,4 @@
-import { render, screen, within, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -16,19 +16,20 @@ const mockPDFDocument = {
 
 let mockPdfLoadDelay = 100;
 let mockPdfLoadError: Error | null = null;
+let mockPDFDocumentsByUrl: Record<string, typeof mockPDFDocument> = {};
 
 vi.mock('react-pdf', () => ({
-  Document: ({ children, onLoadSuccess, onLoadError }: any) => {
+  Document: ({ children, file, onLoadSuccess, onLoadError }: any) => {
     React.useEffect(() => {
       const timer = setTimeout(() => {
         if (mockPdfLoadError) {
           onLoadError?.(mockPdfLoadError);
         } else if (onLoadSuccess) {
-          onLoadSuccess(mockPDFDocument);
+          onLoadSuccess(mockPDFDocumentsByUrl[file] || mockPDFDocument);
         }
       }, mockPdfLoadDelay);
       return () => clearTimeout(timer);
-    }, [onLoadSuccess, onLoadError]);
+    }, [file, onLoadSuccess, onLoadError]);
 
     return <div data-testid="pdf-document">{children}</div>;
   },
@@ -88,7 +89,16 @@ const createMockComponents = () => ({
       {children}
     </button>
   ),
-  Input: ({ className, value, onChange, min, max }: any) => (
+  Input: ({
+    className,
+    value,
+    onChange,
+    min,
+    max,
+    disabled,
+    readOnly,
+    title,
+  }: any) => (
     <input
       className={className}
       data-testid="input"
@@ -97,6 +107,9 @@ const createMockComponents = () => ({
       max={max}
       value={value}
       onChange={onChange}
+      disabled={disabled}
+      readOnly={readOnly}
+      title={title}
     />
   ),
   Label: ({ children, className }: any) => (
@@ -175,6 +188,7 @@ describe('PDFReader', () => {
     vi.clearAllMocks();
     mockPdfLoadDelay = 100;
     mockPdfLoadError = null;
+    mockPDFDocumentsByUrl = {};
   });
 
   afterEach(() => {
@@ -425,6 +439,115 @@ describe('PDFReader', () => {
     // We can't easily identify which button is mode toggle, so just verify it doesn't crash
   });
 
+  it('默认应该使用单页模式渲染', async () => {
+    const mockComponents = createMockComponents();
+
+    render(<PDFReader url="/test.pdf" components={mockComponents as any} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pdf-page-1')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('pdf-page-2')).not.toBeInTheDocument();
+  });
+
+  it('显式 displayMode=scroll 时应该渲染全部页面', async () => {
+    const mockComponents = createMockComponents();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        displayMode="scroll"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pdf-page-1')).toBeInTheDocument();
+      expect(screen.getByTestId('pdf-page-5')).toBeInTheDocument();
+    });
+  });
+
+  it('滚动模式下页码控件应该只读并隐藏翻页按钮', async () => {
+    const mockComponents = createMockComponents();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        displayMode="scroll"
+      />
+    );
+
+    const pageInput = await screen.findByTestId('input');
+    const pageNav = pageInput.parentElement as HTMLElement;
+    const buttons = within(pageNav).queryAllByTestId('button');
+
+    expect(pageInput).toBeDisabled();
+    expect(pageInput).toHaveAttribute(
+      'title',
+      '滚动模式下页码仅显示当前位置'
+    );
+    expect(buttons).toHaveLength(0);
+  });
+
+  it('滚动模式下应该根据滚动位置显示当前页码', async () => {
+    const mockComponents = createMockComponents();
+    const onPageChange = vi.fn();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        displayMode="scroll"
+        onPageChange={onPageChange}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pdf-page-5')).toBeInTheDocument();
+    });
+
+    const container = document.querySelector('.pdf-container') as HTMLElement;
+    const pages = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-page-number]')
+    );
+
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      left: 0,
+      right: 600,
+      bottom: 800,
+      width: 600,
+      height: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+
+    pages.forEach((page) => {
+      const pageNumber = Number(page.dataset.pageNumber);
+      vi.spyOn(page, 'getBoundingClientRect').mockReturnValue({
+        top: pageNumber === 3 ? 12 : pageNumber * 1000,
+        left: 0,
+        right: 600,
+        bottom: pageNumber === 3 ? 812 : pageNumber * 1000 + 800,
+        width: 600,
+        height: 800,
+        x: 0,
+        y: pageNumber === 3 ? 12 : pageNumber * 1000,
+        toJSON: () => ({}),
+      });
+    });
+
+    fireEvent.scroll(container);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('3')).toBeInTheDocument();
+      expect(onPageChange).toHaveBeenCalledWith(3);
+    });
+  });
+
   it('应该支持键盘快捷键', async () => {
     const mockComponents = createMockComponents();
     const onPageChange = vi.fn();
@@ -452,6 +575,32 @@ describe('PDFReader', () => {
     // Test right arrow key
     await userEvent.type(document.body, '{ArrowRight}');
     expect(onPageChange).toHaveBeenLastCalledWith(2);
+  });
+
+  it('输入框聚焦时不应该触发 PDFReader 快捷键', async () => {
+    const mockComponents = createMockComponents();
+    const onPageChange = vi.fn();
+    const onScaleChange = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        enableHotkeys={true}
+        initialPage={2}
+        onPageChange={onPageChange}
+        onScaleChange={onScaleChange}
+      />
+    );
+
+    const input = await screen.findByTestId('input');
+    await user.click(input);
+    await user.keyboard('{ArrowRight}');
+    await user.keyboard('{Control>}={/Control}');
+
+    expect(onPageChange).not.toHaveBeenCalled();
+    expect(onScaleChange).not.toHaveBeenCalled();
   });
 
   it('应该支持全屏切换', async () => {
@@ -555,6 +704,26 @@ describe('PDFReader', () => {
     });
   });
 
+  it('滚动模式下应该隐藏移动端翻页按钮', async () => {
+    const mockComponents = createMockComponents();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        displayMode="scroll"
+        enableMobileNav={true}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pdf-page-1')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('上一页')).not.toBeInTheDocument();
+    expect(screen.queryByText('下一页')).not.toBeInTheDocument();
+  });
+
   it('应该隐藏移动端导航', async () => {
     const mockComponents = createMockComponents();
 
@@ -589,6 +758,84 @@ describe('PDFReader', () => {
     await waitFor(() => {
       expect(onLoadSuccess).toHaveBeenCalledWith(mockPDFDocument);
     });
+  });
+
+  it('切换 url 后应该重置旧文档并加载新文档', async () => {
+    const mockComponents = createMockComponents();
+    const onLoadSuccess = vi.fn();
+    const nextDocument = {
+      ...mockPDFDocument,
+      numPages: 2,
+      getPage: vi.fn(),
+      getOutline: vi.fn(),
+      getDestination: vi.fn(),
+      getPageIndex: vi.fn(),
+    };
+    mockPDFDocumentsByUrl = {
+      '/test.pdf': mockPDFDocument,
+      '/next.pdf': nextDocument,
+    };
+
+    const { rerender } = render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        onLoadSuccess={onLoadSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(onLoadSuccess).toHaveBeenCalledWith(mockPDFDocument);
+      expect(screen.getByText('/ 5')).toBeInTheDocument();
+    });
+
+    rerender(
+      <PDFReader
+        url="/next.pdf"
+        components={mockComponents as any}
+        onLoadSuccess={onLoadSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(onLoadSuccess).toHaveBeenCalledWith(nextDocument);
+      expect(screen.getByText('/ 2')).toBeInTheDocument();
+    });
+
+    expect(onLoadSuccess).toHaveBeenCalledTimes(2);
+  });
+
+  it('受控页码变化时不应该重新加载文档', async () => {
+    const mockComponents = createMockComponents();
+    const onLoadSuccess = vi.fn();
+
+    const { rerender } = render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        currentPage={1}
+        onLoadSuccess={onLoadSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(onLoadSuccess).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        currentPage={2}
+        onLoadSuccess={onLoadSuccess}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('2')).toBeInTheDocument();
+    });
+
+    expect(onLoadSuccess).toHaveBeenCalledTimes(1);
   });
 
   it('应该调用 onLoadError 回调', async () => {

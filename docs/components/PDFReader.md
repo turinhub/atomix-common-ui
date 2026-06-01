@@ -1,14 +1,14 @@
 # PDFReader
 
-功能完整的 PDF 阅读器组件，提供专业级的 PDF 阅读功能，包括侧边栏导航、页面旋转、显示模式切换等高级特性。
+功能完整的 PDF 阅读器组件，提供专业级的 PDF 阅读功能，包括侧边栏导航、页面旋转、显示模式切换等高级特性。`PDFReader` 是 PDF 专项组件，不处理 Word、Excel、PPT、图片或视频等其他文件类型。
 
 ## 特性
 
 - ✅ **页面导航** - 支持上一页/下一页、页码输入跳转
 - ✅ **缩放控制** - 支持 0.5x - 2.5x 缩放范围
 - ✅ **页面旋转** - 支持 90° 递增旋转
-- ✅ **显示模式** - 支持单页/滚动模式切换
-- ✅ **侧边栏导航** - 缩略图和书签导航
+- ✅ **显示模式** - 默认单页模式，支持切换到滚动模式
+- ✅ **侧边栏导航** - 当前页附近和滚动可见缩略图懒加载、书签导航
 - ✅ **全屏模式** - 支持全屏阅读
 - ✅ **键盘快捷键** - 左右箭头翻页、Ctrl+/- 缩放
 - ✅ **移动端适配** - 响应式布局，底部固定导航
@@ -108,13 +108,14 @@ function MyPDFViewer() {
 
 ### 显示模式切换
 
-支持单页和滚动模式切换：
+支持单页和滚动模式切换。默认是 `single`，适合大多数 PDF 和附件预览场景；`scroll` 会渲染所有页面，更适合页数较少的 PDF。
+滚动模式下页码区域仅显示当前滚动位置对应的页码，上一页/下一页按钮会隐藏，页码输入会禁用，避免误以为可以在滚动视图中跳转页面。
 
 ```tsx
 <PDFReader
   url="/documents/sample.pdf"
   showModeToggle={true}
-  displayMode="scroll" // 或 "single"
+  displayMode="single" // 或 "scroll"
   components={components}
 />
 ```
@@ -136,6 +137,8 @@ function MyPDFViewer() {
 - `←` / `→` - 上一页/下一页
 - `Ctrl` + `+` - 放大
 - `Ctrl` + `-` - 缩小
+
+当输入框、文本域、下拉框、`contenteditable` 或常见 `textbox`/`spinbutton` 角色元素聚焦时，快捷键不会触发 PDF 翻页或缩放。
 
 ### 移动端导航
 
@@ -212,7 +215,7 @@ function ControlledPDFViewer() {
 
 ### Worker 文件配置
 
-默认使用 CDN，你可以自定义 Worker 文件位置：
+默认保留 CDN fallback，你可以自定义 Worker、CMap 和标准字体文件位置。内网、私有化部署、离线环境或启用了严格 CSP 的应用，建议始终传入本地资源路径。
 
 ```tsx
 <PDFReader
@@ -271,6 +274,8 @@ components={{
 />
 ```
 
+当 `url` 变化时，`PDFReader` 会重置旧文档状态并加载新 PDF。新文档加载成功后会再次触发 `onLoadSuccess`。
+
 ## 功能开关
 
 你可以通过以下 prop 控制功能显示：
@@ -293,15 +298,18 @@ components={{
 
 ### 1. Worker 文件加载失败
 
-默认使用 CDN 加载 Worker 文件。如果遇到 CORS 问题，可以：
+默认保留 CDN fallback 加载 Worker 文件。如果遇到 CORS、CSP、内网访问或离线问题，可以：
 
 1. 下载 Worker 文件到本地
-2. 配置 `workerUrl` prop 指向本地文件
+2. 同步准备 CMap 和标准字体目录
+3. 配置 `workerUrl`、`cMapUrl` 和 `standardFontDataUrl` 指向本地资源
 
 ```tsx
 <PDFReader
   url="/documents/sample.pdf"
   workerUrl="/pdf.worker.min.mjs"
+  cMapUrl="/cmaps/"
+  standardFontDataUrl="/standard_fonts/"
   components={components}
 />
 ```
@@ -323,9 +331,9 @@ components={{
 
 ### 3. 性能优化建议
 
-- 对于大型 PDF 文件，考虑使用虚拟滚动
-- 限制缩略图生成数量（通过调整组件内部逻辑）
-- 使用 `displayMode="single"` 减少初始渲染压力
+- 默认使用 `displayMode="single"`，减少初始渲染压力
+- `displayMode="scroll"` 会渲染全部页面，建议仅用于小型 PDF
+- 侧边栏缩略图会优先生成当前页附近，并在滚动到更多占位项时继续懒生成，不会阻塞主阅读区和书签列表
 
 ## API 参考
 
@@ -352,7 +360,7 @@ components={{
 | `showFullscreen`      | `boolean`                         | `true`                 | 显示全屏按钮         |
 | `enableHotkeys`       | `boolean`                         | `true`                 | 启用键盘快捷键       |
 | `enableMobileNav`     | `boolean`                         | `true`                 | 启用移动端导航       |
-| `displayMode`         | `'scroll' \| 'single'`            | `'scroll'`             | 显示模式             |
+| `displayMode`         | `'scroll' \| 'single'`            | `'single'`             | 显示模式             |
 | `className`           | `string`                          | -                      | 容器类名             |
 | `toolbarClassName`    | `string`                          | -                      | 工具栏类名           |
 | `contentClassName`    | `string`                          | -                      | 内容区域类名         |

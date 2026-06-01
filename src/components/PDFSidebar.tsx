@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useCallback, useMemo, useRef } from 'react';
 
 import type {
   TabsComponent,
@@ -55,6 +55,18 @@ interface PDFThumbnail {
   pageNumber: number;
   url: string;
 }
+
+const THUMBNAIL_PAGE_WINDOW = 2;
+
+const getThumbnailPages = (numPages: number, currentPage: number) => {
+  if (numPages <= 0) return [];
+
+  const safeCurrentPage = Math.max(1, Math.min(currentPage, numPages));
+  const start = Math.max(1, safeCurrentPage - THUMBNAIL_PAGE_WINDOW);
+  const end = Math.min(numPages, safeCurrentPage + THUMBNAIL_PAGE_WINDOW);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+};
 
 /**
  * PDFSidebar 组件 Props
@@ -179,22 +191,120 @@ export function PDFSidebar({
 }: PDFSidebarProps) {
   const [thumbnails, setThumbnails] = useState<PDFThumbnail[]>([]);
   const [bookmarks, setBookmarks] = useState<PDFOutline[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [visibleThumbnailPages, setVisibleThumbnailPages] = useState<number[]>(
+    []
+  );
+  const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
+  const placeholderElementsRef = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const { Tabs, TabsList, TabsTrigger, TabsContent, ScrollArea, Skeleton } =
     components;
 
-  // 加载缩略图
+  const thumbnailMap = useMemo(
+    () =>
+      thumbnails.reduce<Record<number, PDFThumbnail>>((map, thumbnail) => {
+        map[thumbnail.pageNumber] = thumbnail;
+        return map;
+      }, {}),
+    [thumbnails]
+  );
+
+  const pagesToLoad = useMemo(() => {
+    if (!pdfDocument) return [];
+
+    const pageNumbers = new Set([
+      ...getThumbnailPages(pdfDocument.numPages, currentPage),
+      ...visibleThumbnailPages,
+    ]);
+
+    return Array.from(pageNumbers)
+      .filter(
+        (pageNumber) =>
+          pageNumber >= 1 &&
+          pageNumber <= pdfDocument.numPages &&
+          !thumbnailMap[pageNumber]
+      )
+      .sort((a, b) => a - b);
+  }, [pdfDocument, currentPage, thumbnailMap, visibleThumbnailPages]);
+
   useEffect(() => {
+    setThumbnails([]);
+    setVisibleThumbnailPages([]);
+  }, [pdfDocument]);
+
+  const trackVisibleThumbnailPage = useCallback((pageNumber: number) => {
+    setVisibleThumbnailPages((pages) =>
+      pages.includes(pageNumber) ? pages : [...pages, pageNumber]
+    );
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      if (pdfDocument) {
+        setVisibleThumbnailPages(
+          Array.from({ length: pdfDocument.numPages }, (_, index) => index + 1)
+        );
+      }
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const pageNumber = Number(
+            (entry.target as HTMLElement).dataset.pageNumber
+          );
+
+          if (Number.isFinite(pageNumber)) {
+            trackVisibleThumbnailPage(pageNumber);
+          }
+        });
+      },
+      { rootMargin: '600px 0px' }
+    );
+
+    intersectionObserverRef.current = observer;
+    placeholderElementsRef.current.forEach((element) => {
+      observer.observe(element);
+    });
+
+    return () => {
+      observer.disconnect();
+      intersectionObserverRef.current = null;
+    };
+  }, [pdfDocument, trackVisibleThumbnailPage]);
+
+  const setThumbnailPlaceholderRef = useCallback(
+    (pageNumber: number, element: HTMLDivElement | null) => {
+      const previousElement = placeholderElementsRef.current.get(pageNumber);
+
+      if (previousElement) {
+        intersectionObserverRef.current?.unobserve(previousElement);
+        placeholderElementsRef.current.delete(pageNumber);
+      }
+
+      if (!element) return;
+
+      placeholderElementsRef.current.set(pageNumber, element);
+      intersectionObserverRef.current?.observe(element);
+    },
+    []
+  );
+
+  // 按当前页附近的窗口懒加载缩略图，避免大 PDF 一次性生成全部页面。
+  useEffect(() => {
+    if (!pdfDocument || pagesToLoad.length === 0) return;
+
+    let cancelled = false;
+
     const loadThumbnails = async () => {
-      if (!pdfDocument) return;
+      for (const pageNumber of pagesToLoad) {
+        if (cancelled) return;
 
-      setLoading(true);
-      const thumbs: PDFThumbnail[] = [];
-
-      for (let i = 1; i <= pdfDocument.numPages; i++) {
         try {
-          const page = await pdfDocument.getPage(i);
+          const page = await pdfDocument.getPage(pageNumber);
           const viewport = page.getViewport({ scale: 0.2 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
@@ -204,27 +314,48 @@ export function PDFSidebar({
           canvas.width = viewport.width;
           canvas.height = viewport.height;
 
-          await page.render({
+          const renderTask = page.render({
             canvasContext: context,
             viewport,
             canvas,
-          }).promise;
+          });
 
-          thumbs.push({
-            pageNumber: i,
-            url: canvas.toDataURL(),
+          await renderTask.promise;
+
+          if (cancelled) return;
+
+          setThumbnails((currentThumbnails) => {
+            if (
+              currentThumbnails.some(
+                (thumbnail) => thumbnail.pageNumber === pageNumber
+              )
+            ) {
+              return currentThumbnails;
+            }
+
+            return [
+              ...currentThumbnails,
+              {
+                pageNumber,
+                url: canvas.toDataURL(),
+              },
+            ].sort((a, b) => a.pageNumber - b.pageNumber);
           });
         } catch (error) {
-          console.error(`Error loading thumbnail for page ${i}:`, error);
+          console.error(
+            `Error loading thumbnail for page ${pageNumber}:`,
+            error
+          );
         }
       }
-
-      setThumbnails(thumbs);
-      setLoading(false);
     };
 
     loadThumbnails();
-  }, [pdfDocument]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pdfDocument, pagesToLoad]);
 
   // 加载书签
   useEffect(() => {
@@ -274,17 +405,39 @@ export function PDFSidebar({
     }
   };
 
-  // 渲染缩略图骨架屏
-  const renderThumbnailSkeleton = () => (
-    <div className="space-y-2 p-4">
-      {Array.from({ length: pdfDocument?.numPages || 5 }, (_, i) => (
-        <div key={i} className="flex flex-col items-center p-1">
-          <Skeleton className="h-32 w-48" />
-          <Skeleton className="mt-1 h-4 w-16" />
-        </div>
-      ))}
+  const renderThumbnailPlaceholder = (pageNumber: number) => (
+    <div
+      ref={(element) => setThumbnailPlaceholderRef(pageNumber, element)}
+      key={pageNumber}
+      data-page-number={pageNumber}
+      className={`flex w-full flex-col items-center rounded p-1 ${
+        currentPage === pageNumber ? 'bg-primary/10' : ''
+      }`}
+    >
+      <Skeleton className="h-32 w-48" />
+      <span className="mt-1 text-sm">第 {pageNumber} 页</span>
     </div>
   );
+
+  const renderThumbnailList = () => {
+    if (!pdfDocument || pdfDocument.numPages <= 0) return null;
+
+    return Array.from({ length: pdfDocument.numPages }, (_, index) => {
+      const pageNumber = index + 1;
+      const thumbnail = thumbnailMap[pageNumber];
+
+      return thumbnail ? (
+        <PDFThumbnail
+          key={pageNumber}
+          thumbnail={thumbnail}
+          isCurrentPage={currentPage === pageNumber}
+          onClick={() => onPageClick(pageNumber)}
+        />
+      ) : (
+        renderThumbnailPlaceholder(pageNumber)
+      );
+    });
+  };
 
   return (
     <div className="w-64 border-r bg-muted">
@@ -300,20 +453,7 @@ export function PDFSidebar({
 
         <TabsContent value="thumbnails">
           <ScrollArea className="h-[calc(100vh-8rem)]">
-            {loading ? (
-              renderThumbnailSkeleton()
-            ) : (
-              <div className="space-y-2 p-4">
-                {thumbnails.map((thumb) => (
-                  <PDFThumbnail
-                    key={thumb.pageNumber}
-                    thumbnail={thumb}
-                    isCurrentPage={currentPage === thumb.pageNumber}
-                    onClick={() => onPageClick(thumb.pageNumber)}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="space-y-2 p-4">{renderThumbnailList()}</div>
           </ScrollArea>
         </TabsContent>
 

@@ -4,6 +4,20 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/spec/v2.0.0.html)。
 
+## [Unreleased]
+
+### 变更
+
+- 优化 `PDFReader` 默认阅读体验，默认使用单页模式以降低大文件初始渲染压力。
+- 优化 `PDFReader` 滚动模式交互，页码仅显示当前滚动位置，隐藏上一页/下一页按钮并禁用页码输入。
+- 优化 `PDFSidebar` 缩略图生成策略，支持当前页附近预加载和滚动可见项懒加载。
+- 更新 PDF Reader 文档，明确 PDF 专项能力、内网资源配置建议和滚动模式行为。
+
+### 修复
+
+- 修复 `PDFReader` 切换 `url` 后旧文档状态未正确重置的问题。
+- 修复 `PDFReader` 快捷键在输入类元素聚焦时仍会触发翻页或缩放的问题。
+
 ## [0.3.0] - 2026-05-28
 
 ### 新增
