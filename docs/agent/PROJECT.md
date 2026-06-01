@@ -19,7 +19,8 @@
 
 ## 目录说明
 
-- `src/index.ts`：包入口，所有公开组件、类型和工具都需要从这里导出。
+- `src/index.ts`：轻量包根入口，只导出 `cn` 和通用注入组件类型。
+- `src/*.ts`：公开子路径入口，组件必须通过 kebab-case 文件单独导出。
 - `src/components`：业务组件实现。
 - `src/components/ui`：开发和测试用基础 UI 组件，不代表消费端必须复用这些源码。
 - `src/components/__tests__`：组件测试，优先在这里补充行为覆盖。
@@ -52,16 +53,16 @@ pnpm playground:preview
 
 ## 构建和导出
 
-Vite 使用 library mode，以 `src/index.ts` 为入口，输出 ES module 和 CommonJS：
+Vite 使用 library mode，以多个 `src/*.ts` 入口输出 ES module 和 CommonJS：
 
 - ES module：`dist/index.js`
 - CommonJS：`dist/index.c.js`
 - 类型声明：`dist/index.d.ts`
 
-`package.json` 的 `exports` 只暴露包根入口。新增公开能力时要确保：
+`package.json` 的 `exports` 暴露轻量根入口和组件级 kebab-case 子路径。新增公开能力时要确保：
 
 1. 源码组件或类型已经实现。
-2. `src/index.ts` 导出了组件和类型。
+2. 新增对应的 `src/<kebab-case>.ts` 入口并更新 Vite entry。
 3. 需要用户知道的 API 已写入公开文档。
 4. 构建产物不依赖未声明的外部包。
 

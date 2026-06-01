@@ -63,13 +63,11 @@ npx shadcn-ui@latest add button card dialog input label select table skeleton dr
 // src/lib/ui-adapter.ts
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  TableHeader as DataTableHeader,
-  TablePagination as DataTablePagination,
-} from '@turinhub/atomix-common-ui';
+import { TableHeader as DataTableHeader } from '@turinhub/atomix-common-ui/table-header';
+import { TablePagination as DataTablePagination } from '@turinhub/atomix-common-ui/table-pagination';
 // ... 其他 UI 组件
 
-import type { UIComponents } from '@turinhub/atomix-common-ui';
+import type { UIComponents } from '@turinhub/atomix-common-ui/data-table';
 
 export const dataTableUI: UIComponents = {
   Card,
@@ -85,7 +83,7 @@ export const dataTableUI: UIComponents = {
 ### 2. 使用 DataTable 组件
 
 ```typescript
-import { DataTable } from '@turinhub/atomix-common-ui';
+import { DataTable } from '@turinhub/atomix-common-ui/data-table';
 import { dataTableUI } from '@/lib/ui-adapter';
 
 <DataTable
@@ -165,27 +163,42 @@ import type {
   Column,
   DataTableProps,
   UIComponents,
+} from '@turinhub/atomix-common-ui/data-table';
+import type {
   DeleteConfirmDialogProps,
   DialogUIComponents,
-  TableHeaderProps,
+} from '@turinhub/atomix-common-ui/delete-confirm-dialog';
+import type {
   HeaderUIComponents,
-  TablePaginationProps,
+  TableHeaderProps,
+} from '@turinhub/atomix-common-ui/table-header';
+import type {
   PaginationUIComponents,
+  TablePaginationProps,
+} from '@turinhub/atomix-common-ui/table-pagination';
+import type {
+  ThemeOption,
   ThemeSwitcherProps,
   ThemeSwitcherUIComponents,
+} from '@turinhub/atomix-common-ui/theme-switcher';
+import type {
   ThemeSwitcherContentProps,
   ThemeSwitcherContentUIComponents,
-  ThemeOption,
+} from '@turinhub/atomix-common-ui/theme-switcher-content';
+import type {
+  FileUploadItem,
   FileUploadProps,
   FileUploadUIComponents,
-  FileUploadItem,
+} from '@turinhub/atomix-common-ui/file-upload';
+import type {
   SimplePDFReaderProps,
   SimplePDFReaderUIComponents,
+} from '@turinhub/atomix-common-ui/simple-pdf-reader';
+import type {
   PDFReaderProps,
   PDFReaderUIComponents,
-  PDFSidebarProps,
-  PDFSidebarUIComponents,
-} from '@turinhub/atomix-common-ui';
+} from '@turinhub/atomix-common-ui/pdf-reader';
+import type { PDFSidebarProps } from '@turinhub/atomix-common-ui/pdf-sidebar';
 ```
 
 所有组件都有严格的类型检查，确保使用时的类型安全。
@@ -273,7 +286,7 @@ import { DataTable, Button, Dialog } from '@some-ui-lib';
 
 ```typescript
 // 优势：UI 组件由业务项目提供
-import { DataTable } from '@turinhub/atomix-common-ui';
+import { DataTable } from '@turinhub/atomix-common-ui/data-table';
 import { Button, Dialog } from '@/components/ui'; // 自己的 shadcn/ui
 
 // 优点：

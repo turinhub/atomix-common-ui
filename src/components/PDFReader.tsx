@@ -183,7 +183,7 @@ function useDebounce<T extends (...args: any[]) => any>(
  *
  * @example
  * ```tsx
- * import { PDFReader } from '@turinhub/atomix-common-ui';
+ * import { PDFReader } from '@turinhub/atomix-common-ui/pdf-reader';
  * import { Card, Button, Input, Label, Skeleton } from '@/components/ui';
  * import { Tabs, ScrollArea } from '@/components/ui';
  *
@@ -440,7 +440,9 @@ export function PDFReader({
     let closestDistance = Number.POSITIVE_INFINITY;
 
     pageRefs.current.forEach((element, pageNumber) => {
-      const distance = Math.abs(element.getBoundingClientRect().top - containerTop);
+      const distance = Math.abs(
+        element.getBoundingClientRect().top - containerTop
+      );
       if (distance < closestDistance) {
         closestDistance = distance;
         closestPage = pageNumber;

@@ -6,8 +6,17 @@
 
 ## [Unreleased]
 
+### 破坏性变更
+
+- 根入口 `@turinhub/atomix-common-ui` 不再导出业务组件，组件集成方需要改用组件级 kebab-case 子路径导入，例如 `@turinhub/atomix-common-ui/data-table`、`@turinhub/atomix-common-ui/pdf-reader`。
+
+### 新增
+
+- 新增组件级子路径导出，覆盖 `data-table`、`delete-confirm-dialog`、`table-header`、`table-pagination`、`theme-switcher`、`theme-switcher-content`、`file-upload`、`simple-pdf-reader`、`pdf-reader`、`pdf-sidebar`、`utils` 和 `component-types`。
+
 ### 变更
 
+- 将 Vite library build 改为多入口构建，输出独立的 ESM、CJS 和类型声明文件，以降低消费端引入单个组件时的打包体积。
 - 优化 `PDFReader` 默认阅读体验，默认使用单页模式以降低大文件初始渲染压力。
 - 优化 `PDFReader` 滚动模式交互，页码仅显示当前滚动位置，隐藏上一页/下一页按钮并禁用页码输入。
 - 优化 `PDFSidebar` 缩略图生成策略，支持当前页附近预加载和滚动可见项懒加载。

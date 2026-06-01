@@ -15,7 +15,7 @@ pnpm install react-pdf pdfjs-dist
 ## 基本用法
 
 ```tsx
-import { SimplePDFReader } from '@turinhub/atomix-common-ui';
+import { SimplePDFReader } from '@turinhub/atomix-common-ui/simple-pdf-reader';
 import { Card, Button, Label, Skeleton } from '@/components/ui';
 
 function MyComponent() {
@@ -38,7 +38,7 @@ function MyComponent() {
 ## 完整示例
 
 ```tsx
-import { SimplePDFReader } from '@turinhub/atomix-common-ui';
+import { SimplePDFReader } from '@turinhub/atomix-common-ui/simple-pdf-reader';
 import { Card, Button, Label, Skeleton } from '@/components/ui';
 
 function PDFViewer() {
@@ -237,7 +237,7 @@ import type {
   SimplePDFReaderProps,
   SimplePDFReaderUIComponents,
   PDFDocumentProxy,
-} from '@turinhub/atomix-common-ui';
+} from '@turinhub/atomix-common-ui/simple-pdf-reader';
 ```
 
 ## 完整的 UI 组件示例

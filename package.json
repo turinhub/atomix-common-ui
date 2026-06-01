@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "description": "Common UI components for TurinHub projects",
   "type": "module",
-  "main": "./dist/index.c.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -14,7 +14,127 @@
       },
       "require": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.c.js"
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./data-table": {
+      "import": {
+        "types": "./dist/data-table.d.ts",
+        "default": "./dist/data-table.js"
+      },
+      "require": {
+        "types": "./dist/data-table.d.ts",
+        "default": "./dist/data-table.cjs"
+      }
+    },
+    "./delete-confirm-dialog": {
+      "import": {
+        "types": "./dist/delete-confirm-dialog.d.ts",
+        "default": "./dist/delete-confirm-dialog.js"
+      },
+      "require": {
+        "types": "./dist/delete-confirm-dialog.d.ts",
+        "default": "./dist/delete-confirm-dialog.cjs"
+      }
+    },
+    "./table-header": {
+      "import": {
+        "types": "./dist/table-header.d.ts",
+        "default": "./dist/table-header.js"
+      },
+      "require": {
+        "types": "./dist/table-header.d.ts",
+        "default": "./dist/table-header.cjs"
+      }
+    },
+    "./table-pagination": {
+      "import": {
+        "types": "./dist/table-pagination.d.ts",
+        "default": "./dist/table-pagination.js"
+      },
+      "require": {
+        "types": "./dist/table-pagination.d.ts",
+        "default": "./dist/table-pagination.cjs"
+      }
+    },
+    "./theme-switcher": {
+      "import": {
+        "types": "./dist/theme-switcher.d.ts",
+        "default": "./dist/theme-switcher.js"
+      },
+      "require": {
+        "types": "./dist/theme-switcher.d.ts",
+        "default": "./dist/theme-switcher.cjs"
+      }
+    },
+    "./theme-switcher-content": {
+      "import": {
+        "types": "./dist/theme-switcher-content.d.ts",
+        "default": "./dist/theme-switcher-content.js"
+      },
+      "require": {
+        "types": "./dist/theme-switcher-content.d.ts",
+        "default": "./dist/theme-switcher-content.cjs"
+      }
+    },
+    "./file-upload": {
+      "import": {
+        "types": "./dist/file-upload.d.ts",
+        "default": "./dist/file-upload.js"
+      },
+      "require": {
+        "types": "./dist/file-upload.d.ts",
+        "default": "./dist/file-upload.cjs"
+      }
+    },
+    "./simple-pdf-reader": {
+      "import": {
+        "types": "./dist/simple-pdf-reader.d.ts",
+        "default": "./dist/simple-pdf-reader.js"
+      },
+      "require": {
+        "types": "./dist/simple-pdf-reader.d.ts",
+        "default": "./dist/simple-pdf-reader.cjs"
+      }
+    },
+    "./pdf-reader": {
+      "import": {
+        "types": "./dist/pdf-reader.d.ts",
+        "default": "./dist/pdf-reader.js"
+      },
+      "require": {
+        "types": "./dist/pdf-reader.d.ts",
+        "default": "./dist/pdf-reader.cjs"
+      }
+    },
+    "./pdf-sidebar": {
+      "import": {
+        "types": "./dist/pdf-sidebar.d.ts",
+        "default": "./dist/pdf-sidebar.js"
+      },
+      "require": {
+        "types": "./dist/pdf-sidebar.d.ts",
+        "default": "./dist/pdf-sidebar.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
+      },
+      "require": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./component-types": {
+      "import": {
+        "types": "./dist/component-types.d.ts",
+        "default": "./dist/component-types.js"
+      },
+      "require": {
+        "types": "./dist/component-types.d.ts",
+        "default": "./dist/component-types.cjs"
       }
     }
   },

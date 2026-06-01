@@ -14,7 +14,7 @@ Tale JS SDK 中上传能力主要有两类：
 ## 基础用法
 
 ```tsx
-import { FileUpload } from '@turinhub/atomix-common-ui';
+import { FileUpload } from '@turinhub/atomix-common-ui/file-upload';
 import {
   Card,
   CardContent,

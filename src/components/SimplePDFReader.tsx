@@ -87,7 +87,7 @@ export interface SimplePDFReaderProps {
  *
  * @example
  * ```tsx
- * import { SimplePDFReader } from '@turinhub/atomix-common-ui';
+ * import { SimplePDFReader } from '@turinhub/atomix-common-ui/simple-pdf-reader';
  * import { Card, Button, Skeleton } from '@/components/ui';
  *
  * <SimplePDFReader

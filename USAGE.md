@@ -70,17 +70,13 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  TableHeader as DataTableHeader,
-  TablePagination as DataTablePagination,
-} from '@turinhub/atomix-common-ui';
+import { TableHeader as DataTableHeader } from '@turinhub/atomix-common-ui/table-header';
+import { TablePagination as DataTablePagination } from '@turinhub/atomix-common-ui/table-pagination';
 
-import type {
-  UIComponents,
-  DialogUIComponents,
-  HeaderUIComponents,
-  PaginationUIComponents,
-} from '@turinhub/atomix-common-ui';
+import type { UIComponents } from '@turinhub/atomix-common-ui/data-table';
+import type { DialogUIComponents } from '@turinhub/atomix-common-ui/delete-confirm-dialog';
+import type { HeaderUIComponents } from '@turinhub/atomix-common-ui/table-header';
+import type { PaginationUIComponents } from '@turinhub/atomix-common-ui/table-pagination';
 
 // DataTable 的 UI 组件
 export const dataTableUI: UIComponents = {
@@ -137,9 +133,9 @@ export const paginationUI: PaginationUIComponents = {
 ### 2. 使用 DataTable 组件
 
 ```typescript
-import { DataTable } from '@turinhub/atomix-common-ui';
+import { DataTable } from '@turinhub/atomix-common-ui/data-table';
 import { dataTableUI } from '@/lib/ui-adapter';
-import type { Column } from '@turinhub/atomix-common-ui';
+import type { Column } from '@turinhub/atomix-common-ui/data-table';
 
 interface User {
   id: number;
@@ -213,7 +209,7 @@ function UserList() {
 ### 3. 使用 DeleteConfirmDialog 组件
 
 ```typescript
-import { DeleteConfirmDialog } from '@turinhub/atomix-common-ui';
+import { DeleteConfirmDialog } from '@turinhub/atomix-common-ui/delete-confirm-dialog';
 import { dialogUI } from '@/lib/ui-adapter';
 
 function UserList() {
@@ -261,7 +257,7 @@ export const dataTableUI: UIComponents = {
 `FileUpload` 提供标准上传界面，适合接入 Tale JS SDK 的直接上传或两阶段上传流程。
 
 ```tsx
-import { FileUpload } from '@turinhub/atomix-common-ui';
+import { FileUpload } from '@turinhub/atomix-common-ui/file-upload';
 
 <FileUpload
   components={uploadUI}
@@ -284,7 +280,7 @@ import { FileUpload } from '@turinhub/atomix-common-ui';
 `PDFReader` 和 `SimplePDFReader` 是 PDF 专项阅读组件，不是通用文件预览器。`PDFReader` 默认使用单页模式以降低大文件初始渲染压力，侧边栏缩略图会优先生成当前页附近，并在滚动到更多占位项时继续懒生成。
 
 ```tsx
-import { PDFReader } from '@turinhub/atomix-common-ui';
+import { PDFReader } from '@turinhub/atomix-common-ui/pdf-reader';
 
 <PDFReader
   url="/documents/sample.pdf"
@@ -380,7 +376,7 @@ import { DataTable, Button, Dialog } from '@some-ui-lib';
 
 ```typescript
 // 优势：UI 组件由业务项目提供
-import { DataTable } from '@turinhub/atomix-common-ui';
+import { DataTable } from '@turinhub/atomix-common-ui/data-table';
 import { Button, Dialog } from '@/components/ui'; // 自己的 shadcn/ui
 
 // 优点：

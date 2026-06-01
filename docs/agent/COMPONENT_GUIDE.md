@@ -17,7 +17,7 @@
 1. 在 `src/components` 新增组件文件。
 2. 定义 `Props` 和 `*UIComponents` 类型；可复用注入类型从 `src/types/component-types.ts` 引入。
 3. 通过 `components` prop 接收 UI 原子组件。
-4. 在 `src/index.ts` 导出组件和公开类型。
+4. 新增组件级 kebab-case 入口并在 `package.json` 的 `exports` 中暴露子路径。
 5. 在 `src/components/__tests__` 增加测试。
 6. 如面向用户公开，更新 `README.md`、`USAGE.md` 或 `docs/`。
 7. 如需要 playground 手动验证，更新 `playground/App.tsx`。
@@ -35,7 +35,7 @@
 
 ## 类型和导出
 
-公开类型应从实现文件或 `src/types/component-types.ts` 导出，再统一在 `src/index.ts` 转导出。新增类型时检查：
+公开类型应从实现文件或 `src/types/component-types.ts` 导出。组件专属类型从对应组件子路径转导出；通用注入组件类型从根入口和 `component-types` 子路径导出。新增类型时检查：
 
 - 类型名是否与现有命名风格一致。
 - 是否需要作为用户配置的一部分公开。

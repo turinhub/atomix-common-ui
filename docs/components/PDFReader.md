@@ -53,7 +53,7 @@ pnpm add react-pdf pdfjs-dist
 ## 基础用法
 
 ```tsx
-import { PDFReader } from '@turinhub/atomix-common-ui';
+import { PDFReader } from '@turinhub/atomix-common-ui/pdf-reader';
 import { Card, Button, Input, Skeleton } from '@/components/ui';
 import { Tabs, ScrollArea } from '@/components/ui';
 

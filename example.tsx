@@ -9,10 +9,11 @@
 import { useState } from 'react';
 import {
   DataTable,
-  DeleteConfirmDialog,
-  TableHeader,
-  TablePagination,
-} from '@turinhub/atomix-common-ui';
+  type UIComponents,
+} from '@turinhub/atomix-common-ui/data-table';
+import { DeleteConfirmDialog } from '@turinhub/atomix-common-ui/delete-confirm-dialog';
+import { TableHeader } from '@turinhub/atomix-common-ui/table-header';
+import { TablePagination } from '@turinhub/atomix-common-ui/table-pagination';
 
 // ===== 步骤 1: 创建 UI 组件适配器 =====
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -50,8 +51,6 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-
-import type { UIComponents } from '@turinhub/atomix-common-ui';
 
 // DataTable 的 UI 组件
 export const dataTableUI: UIComponents = {

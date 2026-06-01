@@ -165,7 +165,7 @@ const PDFBookmark = ({
  *
  * @example
  * ```tsx
- * import { PDFSidebar } from '@turinhub/atomix-common-ui';
+ * import { PDFSidebar } from '@turinhub/atomix-common-ui/pdf-sidebar';
  * import { Tabs, ScrollArea, Skeleton } from '@/components/ui';
  *
  * <PDFSidebar
