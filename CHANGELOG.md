@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 新增 `ImageReader` 和 `VideoReader` 在线预览组件，支持常见图片、视频格式校验、加载态、错误态和组件级子路径导出。
+- 新增 `docs/components/ImageReader.md` 和 `docs/components/VideoReader.md`，说明格式支持、基础用法和 API。
+- 在 playground 中新增媒体预览测试页，用于验证图片、视频和不支持格式状态。
+
+### 修复
+
+- 修复 `DataTable` 操作列点击事件冒泡到行点击处理器的问题，便于业务侧同时配置整行跳转和操作列跳转。
+- 修复 `ImageReader` 和 `VideoReader` 切换 `src` 后未恢复加载态的问题，并确保视频资源变更时重新加载。
+
 ## [0.4.0] - 2026-06-01
 
 ### 破坏性变更

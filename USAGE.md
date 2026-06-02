@@ -186,9 +186,16 @@ function UserList() {
         onPageChange: (page) => console.log('Page:', page),
         components: paginationUI, // 传入 TablePagination 的 UI 组件
       }}
+      onRow={(record) => ({
+        onClick: () => navigate(`/users/${record.id}`),
+      })}
       actions={{
         mode: 'collapsed',
         items: [
+          {
+            label: '详情',
+            onClick: (record) => navigate(`/users/${record.id}`),
+          },
           {
             label: '编辑',
             onClick: (record) => console.log('Edit:', record),
@@ -205,6 +212,8 @@ function UserList() {
   );
 }
 ```
+
+详情页跳转建议由业务侧路由实现，`DataTable` 不内置 router 依赖。常见方式是通过 `onRow` 给整行绑定点击跳转；如果只希望在操作列里进入详情，也可以在 `actions.items` 的 `onClick` 中调用 `navigate`、`router.push` 或业务项目自己的跳转函数。操作列会阻止点击事件冒泡，避免点击“详情”“编辑”“删除”等操作时同时触发行级 `onClick`。
 
 ### 3. 使用 DeleteConfirmDialog 组件
 
@@ -275,6 +284,40 @@ import { FileUpload } from '@turinhub/atomix-common-ui/file-upload';
 
 详细文档见 [FileUpload](./docs/components/FileUpload.md)。
 
+## 🖼️ 图片预览
+
+`ImageReader` 使用浏览器原生图片能力预览常见图片格式，默认支持 `jpg`、`jpeg`、`png`、`gif`、`webp`、`svg`、`bmp`、`avif` 和 `ico`，并提供缩放、旋转和新窗口打开。
+
+```tsx
+import { ImageReader } from '@turinhub/atomix-common-ui/image-reader';
+
+<ImageReader
+  src="/attachments/screenshot.webp"
+  alt="页面截图"
+  fileName="screenshot.webp"
+  mimeType="image/webp"
+/>;
+```
+
+详细文档见 [ImageReader](./docs/components/ImageReader.md)。
+
+## 🎬 视频预览
+
+`VideoReader` 使用浏览器原生视频能力预览常见视频格式，默认支持 `mp4`、`webm`、`ogg`、`ogv`、`mov` 和 `m4v`。实际播放能力仍取决于浏览器和视频编码。
+
+```tsx
+import { VideoReader } from '@turinhub/atomix-common-ui/video-reader';
+
+<VideoReader
+  src="/attachments/demo.mp4"
+  title="演示视频"
+  fileName="demo.mp4"
+  mimeType="video/mp4"
+/>;
+```
+
+详细文档见 [VideoReader](./docs/components/VideoReader.md)。
+
 ## 📖 PDF 阅读器
 
 `PDFReader` 和 `SimplePDFReader` 是 PDF 专项阅读组件，不是通用文件预览器。`PDFReader` 默认使用单页模式以降低大文件初始渲染压力，侧边栏缩略图会优先生成当前页附近，并在滚动到更多占位项时继续懒生成。
@@ -307,6 +350,7 @@ import { PDFReader } from '@turinhub/atomix-common-ui/pdf-reader';
 | `loading`    | `boolean`             | ❌   | 加载状态      |
 | `header`     | `TableHeaderProps`    | ❌   | 头部配置      |
 | `pagination` | `PaginationProps`     | ❌   | 分页配置      |
+| `onRow`       | `function`            | ❌   | 行事件配置，可用于整行点击或双击跳转详情 |
 | `actions`    | `ActionsConfig`       | ❌   | 操作列配置    |
 
 ### DeleteConfirmDialog

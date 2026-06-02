@@ -1,24 +1,40 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 
 import { DataTable } from '../DataTable';
 
 const createMockComponents = () => ({
-  Card: ({ children }: any) => <div data-testid="card">{children}</div>,
-  CardContent: ({ children }: any) => <div>{children}</div>,
-  CardFooter: ({ children }: any) => <div>{children}</div>,
-  Table: ({ children }: any) => <table>{children}</table>,
-  TableBody: ({ children }: any) => <tbody>{children}</tbody>,
-  TableCell: ({ children }: any) => <td>{children}</td>,
-  TableHead: ({ children }: any) => <th>{children}</th>,
-  TableHeader: ({ children }: any) => <thead>{children}</thead>,
-  TableRow: ({ children }: any) => <tr>{children}</tr>,
-  Button: ({ children }: any) => <button>{children}</button>,
-  DropdownMenu: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuItem: ({ children, onClick }: any) => (
-    <button onClick={onClick} type="button">
+  Card: ({ children, ...props }: any) => (
+    <div data-testid="card" {...props}>
+      {children}
+    </div>
+  ),
+  CardContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CardFooter: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  Table: ({ children, ...props }: any) => <table {...props}>{children}</table>,
+  TableBody: ({ children, ...props }: any) => (
+    <tbody {...props}>{children}</tbody>
+  ),
+  TableCell: ({ children, ...props }: any) => <td {...props}>{children}</td>,
+  TableHead: ({ children, ...props }: any) => <th {...props}>{children}</th>,
+  TableHeader: ({ children, ...props }: any) => (
+    <thead {...props}>{children}</thead>
+  ),
+  TableRow: ({ children, ...props }: any) => <tr {...props}>{children}</tr>,
+  Button: ({ children, ...props }: any) => (
+    <button type="button" {...props}>
+      {children}
+    </button>
+  ),
+  DropdownMenu: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  DropdownMenuTrigger: ({ children, asChild: _asChild, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
+  DropdownMenuContent: ({ children, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
+  DropdownMenuItem: ({ children, onClick, ...props }: any) => (
+    <button onClick={onClick} type="button" {...props}>
       {children}
     </button>
   ),
@@ -99,5 +115,43 @@ describe('DataTable', () => {
 
     expect(screen.getByText('操作列')).toBeInTheDocument();
     expect(screen.getByText('删除')).toBeInTheDocument();
+  });
+
+  it('点击折叠操作项不应触发行点击', () => {
+    const mockComponents = createMockComponents();
+    const columns = [{ key: 'name' as const, title: 'Name' }];
+    const data = [{ id: 1, name: 'Alice' }];
+    const onRowClick = vi.fn();
+    const onActionClick = vi.fn();
+
+    render(
+      <DataTable
+        components={mockComponents}
+        data={data}
+        columns={columns}
+        rowKey="id"
+        onRow={() => ({
+          onClick: onRowClick,
+        })}
+        actions={{
+          mode: 'collapsed',
+          items: [
+            {
+              label: '查看详情',
+              onClick: onActionClick,
+            },
+          ],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Alice'));
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开行操作菜单' }));
+    fireEvent.click(screen.getByRole('button', { name: '查看详情' }));
+
+    expect(onActionClick).toHaveBeenCalledWith(data[0], 0);
+    expect(onRowClick).toHaveBeenCalledTimes(1);
   });
 });

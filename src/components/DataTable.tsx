@@ -1,6 +1,10 @@
 import { MoreVertical } from 'lucide-react';
 import { ReactNode } from 'react';
-import type { HTMLAttributes, ButtonHTMLAttributes } from 'react';
+import type {
+  HTMLAttributes,
+  ButtonHTMLAttributes,
+  MouseEvent,
+} from 'react';
 
 import type {
   UIComponent,
@@ -64,7 +68,7 @@ export interface UIComponents {
   >;
   DropdownMenuItem: UIComponent<
     ButtonHTMLAttributes<HTMLDivElement> & {
-      onClick?: (e: React.MouseEvent) => void;
+      onClick?: (e: MouseEvent) => void;
     }
   >;
   DropdownMenuSeparator: UIComponent;
@@ -211,6 +215,7 @@ export function DataTable<T extends Record<string, any>>({
               variant="ghost"
               className="h-8 w-8 p-0"
               aria-label="打开行操作菜单"
+              onClick={(event) => event.stopPropagation()}
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
@@ -222,7 +227,10 @@ export function DataTable<T extends Record<string, any>>({
               ) : (
                 <DropdownMenuItem
                   key={`action-${itemIndex}`}
-                  onClick={() => item.onClick(record, index)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    item.onClick(record, index);
+                  }}
                   className={item.className}
                 >
                   {item.icon && (
@@ -357,7 +365,10 @@ export function DataTable<T extends Record<string, any>>({
                 );
               })}
               {hasActions && (
-                <TableCell className="text-right">
+                <TableCell
+                  className="text-right"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   {renderActions
                     ? renderActions(record, index)
                     : defaultRenderActions(record, index)}

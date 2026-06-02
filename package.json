@@ -87,6 +87,26 @@
         "default": "./dist/file-upload.cjs"
       }
     },
+    "./image-reader": {
+      "import": {
+        "types": "./dist/image-reader.d.ts",
+        "default": "./dist/image-reader.js"
+      },
+      "require": {
+        "types": "./dist/image-reader.d.ts",
+        "default": "./dist/image-reader.cjs"
+      }
+    },
+    "./video-reader": {
+      "import": {
+        "types": "./dist/video-reader.d.ts",
+        "default": "./dist/video-reader.js"
+      },
+      "require": {
+        "types": "./dist/video-reader.d.ts",
+        "default": "./dist/video-reader.cjs"
+      }
+    },
     "./simple-pdf-reader": {
       "import": {
         "types": "./dist/simple-pdf-reader.d.ts",

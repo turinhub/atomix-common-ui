@@ -10,7 +10,9 @@ import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
 import { SimplePDFReader } from '../src/components/SimplePDFReader';
 import { PDFReader } from '../src/components/PDFReader';
 import { FileUpload } from '../src/components/FileUpload';
+import { ImageReader } from '../src/components/ImageReader';
 import { MarkdownReader } from '../src/components/MarkdownReader';
+import { VideoReader } from '../src/components/VideoReader';
 import { Button } from '../src/components/ui/button';
 import { ScrollArea } from '../src/components/ui/scroll-area';
 import { TableHeader as UITableHeader } from '../src/components/ui/table';
@@ -100,11 +102,13 @@ type TablePageSizePreset = 'compact' | 'default' | 'large';
 type PlaygroundPage =
   | 'overview'
   | 'file-upload'
+  | 'media-reader'
   | 'markdown-reader'
   | 'pdf-reader';
 type PDFDisplayMode = 'scroll' | 'single';
 type PDFReaderTab = 'advanced' | 'simple';
 type MarkdownReaderState = 'content' | 'source' | 'loading' | 'error' | 'empty';
+type MediaPreviewState = 'image' | 'video' | 'unsupported';
 const pageSizeOptionsByPreset: Record<TablePageSizePreset, number[]> = {
   compact: [2, 4, 8],
   default: [5, 10, 20],
@@ -162,6 +166,34 @@ const markdownSourceUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent
 | data URL | loaded |
 `
 )}`;
+const imagePresetUrls = [
+  {
+    label: 'PNG 示例',
+    value: 'https://dummyimage.com/1280x720/0891b2/ffffff.png&text=ImageReader',
+    fileName: 'image-reader.png',
+    mimeType: 'image/png',
+  },
+  {
+    label: 'SVG 示例',
+    value: 'https://dummyimage.com/960x540/334155/ffffff.svg&text=SVG+Preview',
+    fileName: 'svg-preview.svg',
+    mimeType: 'image/svg+xml',
+  },
+] as const;
+const videoPresetUrls = [
+  {
+    label: 'MP4 示例',
+    value: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    fileName: 'flower.mp4',
+    mimeType: 'video/mp4',
+  },
+  {
+    label: 'WebM 示例',
+    value: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm',
+    fileName: 'flower.webm',
+    mimeType: 'video/webm',
+  },
+] as const;
 
 const themeIcons = themeOptions.reduce(
   (acc, option) => {
@@ -208,6 +240,14 @@ export default function App() {
   const [pdfReaderTab, setPdfReaderTab] = useState<PDFReaderTab>('advanced');
   const [markdownReaderState, setMarkdownReaderState] =
     useState<MarkdownReaderState>('content');
+  const [mediaPreviewState, setMediaPreviewState] =
+    useState<MediaPreviewState>('image');
+  const [imagePresetIndex, setImagePresetIndex] = useState('0');
+  const [imageUrl, setImageUrl] = useState<string>(imagePresetUrls[0].value);
+  const [videoPresetIndex, setVideoPresetIndex] = useState('0');
+  const [videoUrl, setVideoUrl] = useState<string>(videoPresetUrls[0].value);
+  const [mediaShowToolbar, setMediaShowToolbar] = useState(true);
+  const [mediaShowOpenButton, setMediaShowOpenButton] = useState(true);
   const [pdfShowToolbar, setPdfShowToolbar] = useState(true);
   const [pdfShowRotation, setPdfShowRotation] = useState(true);
   const [pdfShowModeToggle, setPdfShowModeToggle] = useState(true);
@@ -367,6 +407,10 @@ export default function App() {
       </Button>
     </div>
   );
+  const selectedImagePreset =
+    imagePresetUrls[Number(imagePresetIndex)] || imagePresetUrls[0];
+  const selectedVideoPreset =
+    videoPresetUrls[Number(videoPresetIndex)] || videoPresetUrls[0];
 
   const columns: Column<Product>[] = [
     {
@@ -507,6 +551,16 @@ export default function App() {
                 onClick={() => setPlaygroundPage('file-upload')}
               >
                 上传界面
+              </Button>
+              <Button
+                type="button"
+                variant={
+                  playgroundPage === 'media-reader' ? 'default' : 'ghost'
+                }
+                className="justify-start md:min-w-36 md:justify-center"
+                onClick={() => setPlaygroundPage('media-reader')}
+              >
+                媒体预览
               </Button>
               <Button
                 type="button"
@@ -1110,6 +1164,268 @@ export default function App() {
                   )}
                 </CardContent>
               </Card>
+            </CardContent>
+          </Card>
+        ) : playgroundPage === 'media-reader' ? (
+          <Card className={`rounded-3xl ${glassCard}`}>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white">
+                媒体预览测试页
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                验证 ImageReader 与 VideoReader 的常见格式、工具栏、加载态和不支持格式兜底
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    测试配置
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    切换预览类型、资源地址和工具栏开关，配置会实时作用到下方组件
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {[
+                      ['image', '图片预览'],
+                      ['video', '视频预览'],
+                      ['unsupported', '不支持格式'],
+                    ].map(([value, label]) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant={
+                          mediaPreviewState === value ? 'default' : 'outline'
+                        }
+                        onClick={() =>
+                          setMediaPreviewState(value as MediaPreviewState)
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        图片预设
+                      </Label>
+                      <Select
+                        value={imagePresetIndex}
+                        onValueChange={(value) => {
+                          setImagePresetIndex(value);
+                          setImageUrl(
+                            imagePresetUrls[Number(value)]?.value ||
+                              imagePresetUrls[0].value
+                          );
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {imagePresetUrls.map((option, index) => (
+                            <SelectItem
+                              key={option.value}
+                              value={String(index)}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        视频预设
+                      </Label>
+                      <Select
+                        value={videoPresetIndex}
+                        onValueChange={(value) => {
+                          setVideoPresetIndex(value);
+                          setVideoUrl(
+                            videoPresetUrls[Number(value)]?.value ||
+                              videoPresetUrls[0].value
+                          );
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {videoPresetUrls.map((option, index) => (
+                            <SelectItem
+                              key={option.value}
+                              value={String(index)}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        图片 URL
+                      </Label>
+                      <Input
+                        value={imageUrl}
+                        onChange={(event) => setImageUrl(event.target.value)}
+                        placeholder="https://example.com/image.png"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        视频 URL
+                      </Label>
+                      <Input
+                        value={videoUrl}
+                        onChange={(event) => setVideoUrl(event.target.value)}
+                        placeholder="https://example.com/video.mp4"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        工具栏
+                      </Label>
+                      {showHideTabs(mediaShowToolbar, setMediaShowToolbar)}
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        新窗口按钮
+                      </Label>
+                      {showHideTabs(
+                        mediaShowOpenButton,
+                        setMediaShowOpenButton
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {mediaPreviewState === 'image' ? (
+                <Card className={`rounded-2xl ${glassCardSub}`}>
+                  <CardHeader>
+                    <CardTitle className="text-slate-900 dark:text-white">
+                      ImageReader
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-300">
+                      支持常见图片格式，使用工具栏验证缩放、旋转和新窗口打开
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageReader
+                      src={imageUrl}
+                      alt="ImageReader playground preview"
+                      fileName={selectedImagePreset.fileName}
+                      mimeType={selectedImagePreset.mimeType}
+                      components={{
+                        Button,
+                        Skeleton,
+                      }}
+                      showToolbar={mediaShowToolbar}
+                      showOpenInNewTab={mediaShowOpenButton}
+                      className="w-full"
+                      containerClassName="min-h-[560px]"
+                    />
+                  </CardContent>
+                </Card>
+              ) : mediaPreviewState === 'video' ? (
+                <Card className={`rounded-2xl ${glassCardSub}`}>
+                  <CardHeader>
+                    <CardTitle className="text-slate-900 dark:text-white">
+                      VideoReader
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 dark:text-slate-300">
+                      使用浏览器原生播放控件验证视频格式、加载态和字幕轨道配置
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <VideoReader
+                      src={videoUrl}
+                      title="VideoReader playground preview"
+                      fileName={selectedVideoPreset.fileName}
+                      mimeType={selectedVideoPreset.mimeType}
+                      components={{
+                        Button,
+                        Skeleton,
+                      }}
+                      tracks={[
+                        {
+                          src: 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:02.000%0AVideoReader%20playground',
+                          kind: 'subtitles',
+                          srcLang: 'zh-CN',
+                          label: '中文',
+                        },
+                      ]}
+                      showToolbar={mediaShowToolbar}
+                      showOpenInNewTab={mediaShowOpenButton}
+                      className="w-full"
+                      containerClassName="min-h-[560px]"
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <Card className={`rounded-2xl ${glassCardSub}`}>
+                    <CardHeader>
+                      <CardTitle className="text-slate-900 dark:text-white">
+                        ImageReader 不支持格式
+                      </CardTitle>
+                      <CardDescription className="text-slate-600 dark:text-slate-300">
+                        用 Word 文件扩展名验证图片格式白名单兜底
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ImageReader
+                        src="/attachments/report.docx"
+                        fileName="report.docx"
+                        mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        components={{
+                          Button,
+                          Skeleton,
+                        }}
+                        showToolbar={mediaShowToolbar}
+                        showOpenInNewTab={false}
+                        containerClassName="min-h-[360px]"
+                      />
+                    </CardContent>
+                  </Card>
+                  <Card className={`rounded-2xl ${glassCardSub}`}>
+                    <CardHeader>
+                      <CardTitle className="text-slate-900 dark:text-white">
+                        VideoReader 不支持格式
+                      </CardTitle>
+                      <CardDescription className="text-slate-600 dark:text-slate-300">
+                        用 Excel 文件扩展名验证视频格式白名单兜底
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <VideoReader
+                        src="/attachments/report.xlsx"
+                        fileName="report.xlsx"
+                        mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        components={{
+                          Button,
+                          Skeleton,
+                        }}
+                        showToolbar={mediaShowToolbar}
+                        showOpenInNewTab={false}
+                        containerClassName="min-h-[360px]"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : playgroundPage === 'markdown-reader' ? (

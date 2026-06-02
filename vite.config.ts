@@ -12,6 +12,8 @@ const entry = {
   'theme-switcher': resolve(__dirname, 'src/theme-switcher.ts'),
   'theme-switcher-content': resolve(__dirname, 'src/theme-switcher-content.ts'),
   'file-upload': resolve(__dirname, 'src/file-upload.ts'),
+  'image-reader': resolve(__dirname, 'src/image-reader.ts'),
+  'video-reader': resolve(__dirname, 'src/video-reader.ts'),
   'simple-pdf-reader': resolve(__dirname, 'src/simple-pdf-reader.ts'),
   'pdf-reader': resolve(__dirname, 'src/pdf-reader.ts'),
   'pdf-sidebar': resolve(__dirname, 'src/pdf-sidebar.ts'),

@@ -91,8 +91,22 @@ import { dataTableUI } from '@/lib/ui-adapter';
   data={users}
   columns={columns}
   rowKey="id"
+  onRow={(record) => ({
+    onClick: () => navigate(`/users/${record.id}`),
+  })}
+  actions={{
+    mode: 'collapsed',
+    items: [
+      {
+        label: '详情',
+        onClick: (record) => navigate(`/users/${record.id}`),
+      },
+    ],
+  }}
 />
 ```
+
+详情页跳转由业务侧路由处理，组件不会绑定特定 router。可以用 `onRow` 做整行点击跳转，也可以在 `actions.items` 的 `onClick` 中跳转；操作列会阻止点击事件冒泡，避免点击“详情”等操作时同时触发行点击。
 
 ## 📚 组件列表
 
@@ -103,11 +117,14 @@ import { dataTableUI } from '@/lib/ui-adapter';
 - **ThemeSwitcher** - 主题切换组件（完整版，支持下拉菜单）
 - **ThemeSwitcherContent** - 主题切换内容组件（轻量版，可嵌入）
 - **FileUpload** - 标准文件上传界面（支持拖拽、校验、进度、失败重试，可接入 Tale SDK 上传流程）
+- **ImageReader** - 图片在线预览组件（支持常见图片格式、缩放、旋转）
+- **VideoReader** - 视频在线预览组件（支持常见视频格式、原生播放控件、字幕轨道）
 - **SimplePDFReader** - 轻量级 PDF 阅读器组件
 - **PDFReader** - 功能完整的 PDF 阅读器组件（默认单页阅读，包含侧边栏导航、页面旋转等高级功能）
 - **PDFSidebar** - PDF 侧边栏导航组件（当前页附近和滚动可见缩略图懒加载、书签）
+- **MarkdownReader** - Markdown 在线阅读组件（支持 GFM 表格、任务列表、图片、代码块）
 
-> 当前 Reader 能力是 PDF 专项能力；Word、Excel、PPT、图片、视频等其他文件类型需要由业务侧自行预览或另行扩展。
+> 当前内置预览能力覆盖 PDF、Markdown、常见图片和常见视频；Word、Excel、PPT 等其他文件类型需要由业务侧自行预览或另行扩展。
 
 ## 📁 项目结构
 
