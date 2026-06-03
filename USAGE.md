@@ -70,6 +70,12 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { TableHeader as DataTableHeader } from '@turinhub/atomix-common-ui/table-header';
 import { TablePagination as DataTablePagination } from '@turinhub/atomix-common-ui/table-pagination';
 
@@ -77,6 +83,7 @@ import type { UIComponents } from '@turinhub/atomix-common-ui/data-table';
 import type { DialogUIComponents } from '@turinhub/atomix-common-ui/delete-confirm-dialog';
 import type { HeaderUIComponents } from '@turinhub/atomix-common-ui/table-header';
 import type { PaginationUIComponents } from '@turinhub/atomix-common-ui/table-pagination';
+import type { AuthUIComponents } from '@turinhub/atomix-common-ui/auth';
 
 // DataTable 的 UI 组件
 export const dataTableUI: UIComponents = {
@@ -127,6 +134,17 @@ export const paginationUI: PaginationUIComponents = {
   SelectContent,
   SelectItem,
   SelectValue,
+};
+
+// Auth 认证组件的 UI 组件
+export const authUI: AuthUIComponents = {
+  Button,
+  Input,
+  Label,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
 };
 ```
 

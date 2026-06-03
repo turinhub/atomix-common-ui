@@ -10,6 +10,9 @@ import { ThemeSwitcherContent } from '../src/components/ThemeSwitcherContent';
 import { SimplePDFReader } from '../src/components/SimplePDFReader';
 import { PDFReader } from '../src/components/PDFReader';
 import { FileUpload } from '../src/components/FileUpload';
+import { AuthPageShell } from '../src/components/AuthPageShell';
+import { AuthPanel } from '../src/components/AuthPanel';
+import { AuthVisualCarousel } from '../src/components/AuthVisualCarousel';
 import { ImageReader } from '../src/components/ImageReader';
 import { MarkdownReader } from '../src/components/MarkdownReader';
 import { VideoReader } from '../src/components/VideoReader';
@@ -102,6 +105,7 @@ type TablePageSizePreset = 'compact' | 'default' | 'large';
 type PlaygroundPage =
   | 'overview'
   | 'file-upload'
+  | 'auth'
   | 'media-reader'
   | 'markdown-reader'
   | 'pdf-reader';
@@ -194,6 +198,29 @@ const videoPresetUrls = [
     mimeType: 'video/webm',
   },
 ] as const;
+const authCarouselItems = [
+  {
+    image: '/auth-carousel/assets-workspace.png',
+    alt: '内容资产管理工作台界面',
+    eyebrow: 'Tale Workspace',
+    title: '统一管理内容资产',
+    description: '把文档、媒体与业务文件放进清晰的资源空间，快速检索与协作。',
+  },
+  {
+    image: '/auth-carousel/permissions-workspace.png',
+    alt: '权限协作与角色管理界面',
+    eyebrow: 'Access Control',
+    title: '精细化权限协作',
+    description: '用角色、权限和访问策略保护关键数据，让团队边界更清楚。',
+  },
+  {
+    image: '/auth-carousel/workflow-workspace.png',
+    alt: '任务流程与自动化看板界面',
+    eyebrow: 'Workflow Automation',
+    title: '持续跟踪任务流程',
+    description: '围绕任务、审批和状态流转建立可视化工作台，进展一目了然。',
+  },
+] as const;
 
 const themeIcons = themeOptions.reduce(
   (acc, option) => {
@@ -256,6 +283,7 @@ export default function App() {
   const [pdfEnableMobileNav, setPdfEnableMobileNav] = useState(true);
   const [pdfShowSidebar, setPdfShowSidebar] = useState(true);
   const [uploadLog, setUploadLog] = useState<string[]>([]);
+  const [authLog, setAuthLog] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const pageSizeByPresetRef = useRef<Record<TablePageSizePreset, number>>({
@@ -477,6 +505,15 @@ export default function App() {
       setTheme(value);
     }
   }, []);
+  const authUIComponents = {
+    Button,
+    Input,
+    Label,
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+  };
 
   const glassCard =
     'border border-slate-200/80 bg-white/82 backdrop-blur-xl shadow-[0_18px_46px_rgba(15,23,42,0.12)] dark:border-white/15 dark:bg-slate-900/58 dark:shadow-[0_0_0_1px_rgba(56,189,248,0.08),0_22px_70px_rgba(2,8,23,0.62)]';
@@ -551,6 +588,14 @@ export default function App() {
                 onClick={() => setPlaygroundPage('file-upload')}
               >
                 上传界面
+              </Button>
+              <Button
+                type="button"
+                variant={playgroundPage === 'auth' ? 'default' : 'ghost'}
+                className="justify-start md:min-w-36 md:justify-center"
+                onClick={() => setPlaygroundPage('auth')}
+              >
+                认证组件
               </Button>
               <Button
                 type="button"
@@ -1153,6 +1198,106 @@ export default function App() {
                   ) : (
                     <div className="space-y-2">
                       {uploadLog.map((log, index) => (
+                        <div
+                          key={`${log}-${index}`}
+                          className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-2 text-sm text-slate-700 dark:border-slate-700/70 dark:bg-slate-900/55 dark:text-slate-200"
+                        >
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </CardContent>
+          </Card>
+        ) : playgroundPage === 'auth' ? (
+          <Card className={`rounded-3xl ${glassCard}`}>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white">
+                Auth 认证组件
+              </CardTitle>
+              <CardDescription className="text-slate-600 dark:text-slate-300">
+                验证 AuthPageShell、AuthPanel、登录和注册回调的组合方式
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+              <div className="overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700/70">
+                <AuthPageShell
+                  visual={
+                    <AuthVisualCarousel
+                      items={authCarouselItems}
+                      intervalMs={5200}
+                    />
+                  }
+                  overlay={<div className="absolute inset-0 z-10 bg-slate-950/35" />}
+                  contentClassName="min-h-[680px]"
+                >
+                  <AuthPanel
+                    components={authUIComponents}
+                    loginProps={{
+                      title: '欢迎登录 Tale',
+                      description: '进入资源、任务与权限管理工作台',
+                      onPasswordLogin: async ({ username }) => {
+                        setAuthLog((logs) => [
+                          `账号密码登录：${username}`,
+                          ...logs.slice(0, 5),
+                        ]);
+                      },
+                      onSendSmsCode: async (phone) => {
+                        setAuthLog((logs) => [
+                          `发送登录验证码：${phone}`,
+                          ...logs.slice(0, 5),
+                        ]);
+                        return { smsId: 'login-sms-id', smsType: 'login' };
+                      },
+                      onSmsLogin: async ({ phone, code, smsId, smsType }) => {
+                        setAuthLog((logs) => [
+                          `短信登录：${phone} / ${code} / ${smsId} / ${smsType}`,
+                          ...logs.slice(0, 5),
+                        ]);
+                      },
+                    }}
+                    registerProps={{
+                      title: '创建 Tale 账号',
+                      description: '填写账号信息并完成手机号验证',
+                      requireTermsAccepted: true,
+                      termsLabel: '我已阅读并同意 Tale 服务条款',
+                      onSendSmsCode: async (phone) => {
+                        setAuthLog((logs) => [
+                          `发送注册验证码：${phone}`,
+                          ...logs.slice(0, 5),
+                        ]);
+                        return { smsId: 'register-sms-id', smsType: 'register' };
+                      },
+                      onRegister: async ({ username, phone, smsId, smsType }) => {
+                        setAuthLog((logs) => [
+                          `注册：${username} / ${phone} / ${smsId} / ${smsType}`,
+                          ...logs.slice(0, 5),
+                        ]);
+                      },
+                    }}
+                  />
+                </AuthPageShell>
+              </div>
+
+              <Card className={`rounded-2xl ${glassCardSub}`}>
+                <CardHeader>
+                  <CardTitle className="text-slate-900 dark:text-white">
+                    认证事件
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-300">
+                    模拟业务侧登录、注册和验证码回调
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {authLog.length === 0 ? (
+                    <div className="rounded-lg border border-dashed p-4 text-sm text-slate-500 dark:text-slate-400">
+                      暂无事件
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {authLog.map((log, index) => (
                         <div
                           key={`${log}-${index}`}
                           className="rounded-lg border border-slate-200/70 bg-white/70 px-3 py-2 text-sm text-slate-700 dark:border-slate-700/70 dark:bg-slate-900/55 dark:text-slate-200"

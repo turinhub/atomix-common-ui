@@ -6,11 +6,23 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-03
+
 ### 新增
 
+- 新增 `AuthPageShell`、`AuthVisualCarousel`、`AuthPanel`、`AuthLoginPanel` 和 `AuthRegisterPanel` 认证组件套件，支持页面背景插槽、通用视觉轮播、登录/注册切换、账号密码登录、手机号验证码登录与注册。
+- 新增 `auth` 子路径导出，支持 `@turinhub/atomix-common-ui/auth` 引入认证组件和类型。
+- 新增 `docs/components/Auth.md`，说明 Auth 组件的 UI 注入、登录注册回调、页面壳、视觉轮播组合和 Tale-style 接入边界。
+- 在 playground 中新增认证组件测试页和本地认证轮播演示图，用于验证 `AuthPageShell`、`AuthVisualCarousel`、`AuthPanel`、登录、注册和验证码回调链路。
+- 新增 Auth 组件测试用例，覆盖登录方式切换、密码登录、手机号校验、验证码元数据传递、注册校验、条款确认、面板切换、页面壳插槽和视觉轮播交互。
 - 新增 `ImageReader` 和 `VideoReader` 在线预览组件，支持常见图片、视频格式校验、加载态、错误态和组件级子路径导出。
 - 新增 `docs/components/ImageReader.md` 和 `docs/components/VideoReader.md`，说明格式支持、基础用法和 API。
 - 在 playground 中新增媒体预览测试页，用于验证图片、视频和不支持格式状态。
+
+### 变更
+
+- 根入口恢复导出业务组件与类型，同时保留组件级子路径导出，便于消费端按需选择集成方式。
+- 扩展 Tabs 注入组件类型，支持认证组件向宿主 Tabs 根组件传入布局类名。
 
 ### 修复
 

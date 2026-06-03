@@ -155,6 +155,7 @@ export type TabsComponent = UIComponent<{
   onValueChange?: (value: string) => void;
   children?: React.ReactNode;
   defaultValue?: string;
+  className?: string;
 }>;
 
 export type TabsListComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;

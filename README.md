@@ -52,7 +52,7 @@ pnpm add @turinhub/atomix-common-ui
 npx shadcn-ui@latest init
 
 # 安装需要的 UI 组件
-npx shadcn-ui@latest add button card dialog input label select table skeleton dropdown-menu
+npx shadcn-ui@latest add button card dialog input label select table skeleton dropdown-menu tabs
 ```
 
 ## 🚀 快速开始
@@ -123,6 +123,7 @@ import { dataTableUI } from '@/lib/ui-adapter';
 - **PDFReader** - 功能完整的 PDF 阅读器组件（默认单页阅读，包含侧边栏导航、页面旋转等高级功能）
 - **PDFSidebar** - PDF 侧边栏导航组件（当前页附近和滚动可见缩略图懒加载、书签）
 - **MarkdownReader** - Markdown 在线阅读组件（支持 GFM 表格、任务列表、图片、代码块）
+- **AuthPageShell / AuthVisualCarousel / AuthPanel / AuthLoginPanel / AuthRegisterPanel** - 认证页面壳、视觉轮播与登录注册面板（支持账号密码、手机号验证码和扩展插槽）
 
 > 当前内置预览能力覆盖 PDF、Markdown、常见图片和常见视频；Word、Excel、PPT 等其他文件类型需要由业务侧自行预览或另行扩展。
 

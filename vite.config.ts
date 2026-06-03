@@ -5,6 +5,7 @@ import { resolve } from 'path';
 
 const entry = {
   index: resolve(__dirname, 'src/index.ts'),
+  auth: resolve(__dirname, 'src/auth.ts'),
   'data-table': resolve(__dirname, 'src/data-table.ts'),
   'delete-confirm-dialog': resolve(__dirname, 'src/delete-confirm-dialog.ts'),
   'table-header': resolve(__dirname, 'src/table-header.ts'),
@@ -51,7 +52,9 @@ export default defineConfig({
         'class-variance-authority',
         'clsx',
         'lucide-react',
+        'pdfjs-dist',
         'react-markdown',
+        'react-pdf',
         'remark-gfm',
         'tailwind-merge',
       ],
