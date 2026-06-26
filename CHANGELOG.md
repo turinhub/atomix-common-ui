@@ -6,6 +6,13 @@
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-06-26
+
+### 修复
+
+- 修复 `SelectGroupComponent` 未从根入口和 `component-types` 子路径导出的问题，确保 `TablePagination` 的可选 `SelectGroup` 注入类型可被消费方复用。
+- 新增 pnpm `allowBuilds.esbuild` 配置，避免非交互安装时因 esbuild 构建脚本审批导致验证流程中断。
+
 ## [0.6.0] - 2026-06-26
 
 ### 新增

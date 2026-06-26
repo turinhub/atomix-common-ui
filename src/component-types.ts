@@ -16,6 +16,7 @@ export type {
   LabelComponent,
   ScrollAreaComponent,
   SelectComponent,
+  SelectGroupComponent,
   SelectContentComponent,
   SelectItemComponent,
   SelectTriggerComponent,

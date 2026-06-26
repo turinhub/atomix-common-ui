@@ -38,6 +38,7 @@ export type {
   TableRowComponent,
   TableCellComponent,
   SelectComponent,
+  SelectGroupComponent,
   SelectTriggerComponent,
   SelectContentComponent,
   SelectItemComponent,
