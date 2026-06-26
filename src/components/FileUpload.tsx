@@ -438,8 +438,8 @@ export function FileUpload<TResult = unknown>({
           tabIndex={disabled ? -1 : 0}
           aria-disabled={disabled}
           className={cn(
-            'flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 px-6 py-8 text-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-            isDragging && 'border-primary bg-primary/5',
+            'flex min-h-40 cursor-pointer touch-manipulation flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 px-6 py-8 text-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            isDragging && 'border-primary bg-primary/10 shadow-inner',
             disabled && 'cursor-not-allowed opacity-60',
             dropzoneClassName
           )}
@@ -493,16 +493,16 @@ export function FileUpload<TResult = unknown>({
 
         <div className={cn('space-y-3', listClassName)}>
           {items.length === 0 ? (
-            <div className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-md border border-dashed bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
               {emptyLabel}
             </div>
           ) : (
             items.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border bg-background px-4 py-3"
+                className="rounded-lg border bg-background px-4 py-3 shadow-sm"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex min-w-0 items-start gap-3">
                   <div className="mt-0.5 rounded-md bg-muted p-2 text-muted-foreground">
                     <FileText className="h-4 w-4" />
                   </div>
@@ -535,7 +535,7 @@ export function FileUpload<TResult = unknown>({
                       </div>
                     )}
                     {item.error && (
-                      <div className="text-xs text-destructive">
+                      <div className="break-words text-xs text-destructive">
                         {item.error}
                       </div>
                     )}

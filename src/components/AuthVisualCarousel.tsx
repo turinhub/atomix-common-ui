@@ -6,6 +6,8 @@ import { cn } from '../lib/utils';
 export interface AuthVisualCarouselItem {
   image: string;
   alt: string;
+  width?: number;
+  height?: number;
   title?: ReactNode;
   description?: ReactNode;
   eyebrow?: ReactNode;
@@ -80,7 +82,7 @@ export function AuthVisualCarousel({
   return (
     <div
       className={cn(
-        'relative h-full min-h-[360px] w-full overflow-hidden bg-slate-950 outline-none',
+        'relative h-full min-h-[360px] w-full overflow-hidden bg-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
         className
       )}
       tabIndex={0}
@@ -97,8 +99,13 @@ export function AuthVisualCarousel({
           key={`${item.image}-${index}`}
           src={item.image}
           alt={item.alt}
+          width={item.width ?? 1600}
+          height={item.height ?? 900}
+          fetchPriority={index === currentSlide ? 'high' : 'auto'}
+          loading={index === 0 ? 'eager' : 'lazy'}
+          decoding="async"
           className={cn(
-            'absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out',
+            'absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out motion-reduce:transition-none',
             index === currentSlide ? 'opacity-100' : 'opacity-0',
             imageClassName
           )}
@@ -107,7 +114,15 @@ export function AuthVisualCarousel({
       ))}
 
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/30 to-slate-950/10" />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/78 via-slate-950/30 to-transparent pb-16 pt-24" />
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent pb-16 pt-24" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,0.32)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.26)_1px,transparent_1px)] [background-size:44px_44px]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
+        aria-hidden="true"
+      />
 
       {(showText || showIndicators) && (
         <div
@@ -124,7 +139,7 @@ export function AuthVisualCarousel({
                 </p>
               )}
               {currentItem.title && (
-                <h2 className="text-xl font-semibold leading-tight sm:text-2xl lg:text-3xl">
+                <h2 className="text-balance text-xl font-semibold leading-tight sm:text-2xl lg:text-3xl">
                   {currentItem.title}
                 </h2>
               )}
@@ -143,7 +158,7 @@ export function AuthVisualCarousel({
                   key={`${item.image}-indicator-${index}`}
                   type="button"
                   className={cn(
-                    'h-1.5 rounded-full transition-all',
+                    'h-1.5 rounded-full transition-[background-color,width] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none',
                     index === currentSlide
                       ? 'w-8 bg-white'
                       : 'w-3 bg-white/40 hover:bg-white/70'

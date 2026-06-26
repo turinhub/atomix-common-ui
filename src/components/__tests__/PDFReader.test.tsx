@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -78,13 +84,21 @@ const createMockComponents = () => ({
       {children}
     </div>
   ),
-  Button: ({ children, className, disabled, onClick, title }: any) => (
+  Button: ({
+    children,
+    className,
+    disabled,
+    onClick,
+    title,
+    ...props
+  }: any) => (
     <button
       className={className}
       data-testid="button"
       disabled={disabled}
       onClick={disabled ? undefined : onClick}
       title={title}
+      {...props}
     >
       {children}
     </button>
@@ -98,6 +112,7 @@ const createMockComponents = () => ({
     disabled,
     readOnly,
     title,
+    ...props
   }: any) => (
     <input
       className={className}
@@ -110,6 +125,7 @@ const createMockComponents = () => ({
       disabled={disabled}
       readOnly={readOnly}
       title={title}
+      {...props}
     />
   ),
   Label: ({ children, className }: any) => (
@@ -221,6 +237,39 @@ describe('PDFReader', () => {
       const buttons = screen.getAllByTestId('button');
       expect(buttons.length).toBeGreaterThan(0);
     });
+  });
+
+  it('工具栏图标按钮应该有可访问名称', async () => {
+    const mockComponents = createMockComponents();
+
+    render(
+      <PDFReader
+        url="/test.pdf"
+        components={mockComponents as any}
+        showToolbar={true}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: '缩小' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '放大' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '顺时针旋转' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '进入全屏' })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('当前页码')).toHaveAttribute(
+      'name',
+      'pdf-page'
+    );
+  });
+
+  it('加载状态应该暴露给辅助技术', () => {
+    const mockComponents = createMockComponents();
+
+    render(<PDFReader url="/test.pdf" components={mockComponents as any} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('正在加载PDF文档');
   });
 
   it('应该隐藏工具栏', async () => {
@@ -484,10 +533,7 @@ describe('PDFReader', () => {
     const buttons = within(pageNav).queryAllByTestId('button');
 
     expect(pageInput).toBeDisabled();
-    expect(pageInput).toHaveAttribute(
-      'title',
-      '滚动模式下页码仅显示当前位置'
-    );
+    expect(pageInput).toHaveAttribute('title', '滚动模式下页码仅显示当前位置');
     expect(buttons).toHaveLength(0);
   });
 

@@ -70,12 +70,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TableHeader as DataTableHeader } from '@turinhub/atomix-common-ui/table-header';
 import { TablePagination as DataTablePagination } from '@turinhub/atomix-common-ui/table-pagination';
 
@@ -359,17 +354,17 @@ import { PDFReader } from '@turinhub/atomix-common-ui/pdf-reader';
 
 ### DataTable
 
-| Prop         | 类型                  | 必填 | 说明          |
-| ------------ | --------------------- | ---- | ------------- |
-| `components` | `UIComponents`        | ✅   | UI 组件适配器 |
-| `data`       | `T[]`                 | ✅   | 表格数据      |
-| `columns`    | `Column<T>[]`         | ✅   | 列配置        |
-| `rowKey`     | `keyof T \| function` | ✅   | 行的唯一标识  |
-| `loading`    | `boolean`             | ❌   | 加载状态      |
-| `header`     | `TableHeaderProps`    | ❌   | 头部配置      |
-| `pagination` | `PaginationProps`     | ❌   | 分页配置      |
-| `onRow`       | `function`            | ❌   | 行事件配置，可用于整行点击或双击跳转详情 |
-| `actions`    | `ActionsConfig`       | ❌   | 操作列配置    |
+| Prop         | 类型                  | 必填 | 说明                                     |
+| ------------ | --------------------- | ---- | ---------------------------------------- |
+| `components` | `UIComponents`        | ✅   | UI 组件适配器                            |
+| `data`       | `T[]`                 | ✅   | 表格数据                                 |
+| `columns`    | `Column<T>[]`         | ✅   | 列配置                                   |
+| `rowKey`     | `keyof T \| function` | ✅   | 行的唯一标识                             |
+| `loading`    | `boolean`             | ❌   | 加载状态                                 |
+| `header`     | `TableHeaderProps`    | ❌   | 头部配置                                 |
+| `pagination` | `PaginationProps`     | ❌   | 分页配置                                 |
+| `onRow`      | `function`            | ❌   | 行事件配置，可用于整行点击或双击跳转详情 |
+| `actions`    | `ActionsConfig`       | ❌   | 操作列配置                               |
 
 ### DeleteConfirmDialog
 

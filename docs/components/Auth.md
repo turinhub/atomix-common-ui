@@ -6,16 +6,14 @@
 ## UI Adapter
 
 ```tsx
-import { AuthPanel, type AuthUIComponents } from '@turinhub/atomix-common-ui/auth';
+import {
+  AuthPanel,
+  type AuthUIComponents,
+} from '@turinhub/atomix-common-ui/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const authUI: AuthUIComponents = {
   Button,
@@ -47,7 +45,7 @@ import { AuthLoginPanel } from '@turinhub/atomix-common-ui/auth';
   onSmsLogin={async ({ code, smsId, smsType }) => {
     await verifySmsCode(smsId!, code, smsType);
   }}
-/>
+/>;
 ```
 
 ## Register Panel
@@ -63,17 +61,10 @@ import { AuthRegisterPanel } from '@turinhub/atomix-common-ui/auth';
     const result = await requestRegisterSmsCode(phone);
     return { smsId: result.smsId, smsType: result.type };
   }}
-  onRegister={async ({
-    username,
-    password,
-    phone,
-    code,
-    smsId,
-    smsType,
-  }) => {
+  onRegister={async ({ username, password, phone, code, smsId, smsType }) => {
     await registerUser({ username, password, phone, code, smsId, smsType });
   }}
-/>
+/>;
 ```
 
 ## Visual Carousel
@@ -137,7 +128,7 @@ import { AuthPageShell, AuthPanel } from '@turinhub/atomix-common-ui/auth';
       onRegister: handleRegister,
     }}
   />
-</AuthPageShell>
+</AuthPageShell>;
 ```
 
 ## Tale-style Boundary

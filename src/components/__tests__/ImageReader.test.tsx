@@ -25,11 +25,25 @@ describe('ImageReader', () => {
       <ImageReader
         src="https://example.com/photo.png"
         alt="产品截图"
+        width={1280}
+        height={720}
         onLoad={onLoad}
       />
     );
 
     expect(screen.getByRole('status')).toHaveTextContent('正在加载图片');
+    expect(screen.getByRole('img', { name: '产品截图' })).toHaveAttribute(
+      'decoding',
+      'async'
+    );
+    expect(screen.getByRole('img', { name: '产品截图' })).toHaveAttribute(
+      'width',
+      '1280'
+    );
+    expect(screen.getByRole('img', { name: '产品截图' })).toHaveAttribute(
+      'height',
+      '720'
+    );
 
     fireEvent.load(screen.getByRole('img', { name: '产品截图' }));
 
@@ -57,9 +71,7 @@ describe('ImageReader', () => {
   it('shows an unsupported state for non-image sources', () => {
     render(<ImageReader src="/docs/report.docx" />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      '暂不支持该图片格式'
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('暂不支持该图片格式');
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
@@ -88,7 +100,9 @@ describe('ImageReader', () => {
       <ImageReader
         src="/assets/photo.jpg"
         components={{
-          Card: ({ children }: any) => <section data-testid="card">{children}</section>,
+          Card: ({ children }: any) => (
+            <section data-testid="card">{children}</section>
+          ),
           CardContent: ({ children }: any) => <div>{children}</div>,
           Skeleton: ({ className }: any) => (
             <div className={className} data-testid="skeleton" />

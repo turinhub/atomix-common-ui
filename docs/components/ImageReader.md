@@ -41,36 +41,35 @@ import { ImageReader } from '@turinhub/atomix-common-ui/image-reader';
     Button,
     Skeleton,
   }}
-/>;
+/>
 ```
 
 全部 UI 注入项都是可选的。未传 `Button` 时组件会使用原生 `button` 渲染工具栏按钮。
 
 ## Props
 
-| Prop                     | 类型                                             | 默认值               | 说明                         |
-| ------------------------ | ------------------------------------------------ | -------------------- | ---------------------------- |
-| `src`                    | `string`                                         | -                    | 图片地址                     |
-| `alt`                    | `string`                                         | `''`                 | 图片替代文本                 |
-| `fileName`               | `string`                                         | -                    | 文件名，用于格式识别         |
-| `mimeType`               | `string`                                         | -                    | MIME 类型，用于格式识别      |
-| `components`             | `ImageReaderUIComponents`                        | -                    | 可选 UI 组件注入             |
-| `loading`                | `boolean`                                        | `false`              | 外部加载态                   |
-| `error`                  | `Error \| string \| null`                        | -                    | 外部错误态                   |
-| `showToolbar`            | `boolean`                                        | `true`               | 是否显示工具栏               |
-| `showOpenInNewTab`       | `boolean`                                        | `true`               | 是否显示新窗口打开按钮       |
-| `objectFit`              | `'contain' \| 'cover' \| 'fill' \| 'none' \| 'scale-down'` | `'contain'` | 图片填充方式                 |
-| `initialScale`           | `number`                                         | `1`                  | 初始缩放                     |
-| `minScale`               | `number`                                         | `0.25`               | 最小缩放                     |
-| `maxScale`               | `number`                                         | `4`                  | 最大缩放                     |
-| `scaleStep`              | `number`                                         | `0.25`               | 缩放步进                     |
-| `scale`                  | `number`                                         | -                    | 受控缩放值                   |
-| `onScaleChange`          | `(scale: number) => void`                        | -                    | 缩放变化回调                 |
-| `rotation`               | `number`                                         | -                    | 受控旋转角度                 |
-| `onRotationChange`       | `(rotation: number) => void`                     | -                    | 旋转变化回调                 |
-| `allowUnsupportedFormat` | `boolean`                                        | `false`              | 是否跳过格式白名单校验       |
-| `supportedExtensions`    | `readonly string[]`                              | 常见图片格式         | 自定义扩展名白名单           |
-| `supportedMimeTypes`     | `readonly string[]`                              | 常见图片 MIME 类型   | 自定义 MIME 白名单           |
-| `onLoad`                 | `() => void`                                     | -                    | 图片加载成功回调             |
-| `onError`                | `(error: Error) => void`                         | -                    | 图片加载失败回调             |
-
+| Prop                     | 类型                                                       | 默认值             | 说明                    |
+| ------------------------ | ---------------------------------------------------------- | ------------------ | ----------------------- |
+| `src`                    | `string`                                                   | -                  | 图片地址                |
+| `alt`                    | `string`                                                   | `''`               | 图片替代文本            |
+| `fileName`               | `string`                                                   | -                  | 文件名，用于格式识别    |
+| `mimeType`               | `string`                                                   | -                  | MIME 类型，用于格式识别 |
+| `components`             | `ImageReaderUIComponents`                                  | -                  | 可选 UI 组件注入        |
+| `loading`                | `boolean`                                                  | `false`            | 外部加载态              |
+| `error`                  | `Error \| string \| null`                                  | -                  | 外部错误态              |
+| `showToolbar`            | `boolean`                                                  | `true`             | 是否显示工具栏          |
+| `showOpenInNewTab`       | `boolean`                                                  | `true`             | 是否显示新窗口打开按钮  |
+| `objectFit`              | `'contain' \| 'cover' \| 'fill' \| 'none' \| 'scale-down'` | `'contain'`        | 图片填充方式            |
+| `initialScale`           | `number`                                                   | `1`                | 初始缩放                |
+| `minScale`               | `number`                                                   | `0.25`             | 最小缩放                |
+| `maxScale`               | `number`                                                   | `4`                | 最大缩放                |
+| `scaleStep`              | `number`                                                   | `0.25`             | 缩放步进                |
+| `scale`                  | `number`                                                   | -                  | 受控缩放值              |
+| `onScaleChange`          | `(scale: number) => void`                                  | -                  | 缩放变化回调            |
+| `rotation`               | `number`                                                   | -                  | 受控旋转角度            |
+| `onRotationChange`       | `(rotation: number) => void`                               | -                  | 旋转变化回调            |
+| `allowUnsupportedFormat` | `boolean`                                                  | `false`            | 是否跳过格式白名单校验  |
+| `supportedExtensions`    | `readonly string[]`                                        | 常见图片格式       | 自定义扩展名白名单      |
+| `supportedMimeTypes`     | `readonly string[]`                                        | 常见图片 MIME 类型 | 自定义 MIME 白名单      |
+| `onLoad`                 | `() => void`                                               | -                  | 图片加载成功回调        |
+| `onError`                | `(error: Error) => void`                                   | -                  | 图片加载失败回调        |

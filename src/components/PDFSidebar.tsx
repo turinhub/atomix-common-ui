@@ -107,20 +107,22 @@ const PDFThumbnail = memo(
         isCurrentPage ? 'bg-primary/10' : ''
       }`}
     >
-      <img
-        src={thumbnail.url}
-        alt={`Page ${thumbnail.pageNumber}`}
-        className="w-48 cursor-pointer border transition-opacity hover:opacity-80"
+      <button
+        type="button"
+        className="rounded border bg-background p-0 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         onClick={onClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onClick();
-          }
-        }}
-        role="button"
-        tabIndex={0}
-      />
+        aria-label={`跳转到第 ${thumbnail.pageNumber} 页`}
+      >
+        <img
+          src={thumbnail.url}
+          alt={`Page ${thumbnail.pageNumber}`}
+          className="w-48"
+          width={192}
+          height={272}
+          loading="lazy"
+          decoding="async"
+        />
+      </button>
       <span className="mt-1 text-sm">第 {thumbnail.pageNumber} 页</span>
     </div>
   )

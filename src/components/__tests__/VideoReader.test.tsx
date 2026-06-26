@@ -65,9 +65,7 @@ describe('VideoReader', () => {
   it('shows an unsupported state for non-video sources', () => {
     const { container } = render(<VideoReader src="/docs/report.xlsx" />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      '暂不支持该视频格式'
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('暂不支持该视频格式');
     expect(container.querySelector('video')).not.toBeInTheDocument();
   });
 

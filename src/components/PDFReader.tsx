@@ -614,6 +614,7 @@ export function PDFReader({
               variant="outline"
               size="icon"
               onClick={() => setShowSidebarState(!showSidebarState)}
+              aria-label={showSidebarState ? '隐藏侧边栏' : '显示侧边栏'}
               title={showSidebarState ? '隐藏侧边栏' : '显示侧边栏'}
             >
               <PanelLeftIcon />
@@ -626,6 +627,8 @@ export function PDFReader({
             size="icon"
             onClick={() => zoom(-0.1)}
             disabled={scale <= minScale}
+            aria-label="缩小"
+            title="缩小"
           >
             <ZoomOutIcon />
           </Button>
@@ -637,13 +640,21 @@ export function PDFReader({
             size="icon"
             onClick={() => zoom(0.1)}
             disabled={scale >= maxScale}
+            aria-label="放大"
+            title="放大"
           >
             <ZoomInIcon />
           </Button>
 
           {/* 旋转控制 */}
           {showRotation && (
-            <Button variant="outline" size="icon" onClick={rotate}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={rotate}
+              aria-label="顺时针旋转"
+              title="顺时针旋转"
+            >
               <RotateCwIcon />
             </Button>
           )}
@@ -654,6 +665,7 @@ export function PDFReader({
               variant="outline"
               size="icon"
               onClick={() => setShowAllPages(!showAllPages)}
+              aria-label={showAllPages ? '切换到单页模式' : '切换到滚动模式'}
               title={showAllPages ? '单页模式' : '滚动模式'}
             >
               {showAllPages ? <ScrollTextIcon /> : <FileTextIcon />}
@@ -662,7 +674,13 @@ export function PDFReader({
 
           {/* 全屏切换 */}
           {showFullscreen && (
-            <Button variant="outline" size="icon" onClick={toggleFullscreen}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
+              title={isFullscreen ? '退出全屏' : '进入全屏'}
+            >
               {isFullscreen ? <Minimize2Icon /> : <Maximize2Icon />}
             </Button>
           )}
@@ -675,6 +693,8 @@ export function PDFReader({
               size="icon"
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage <= 1}
+              aria-label="上一页"
+              title="上一页"
             >
               <ChevronLeftIcon />
             </Button>
@@ -682,12 +702,16 @@ export function PDFReader({
 
           <Input
             type="number"
+            name="pdf-page"
             min={1}
             max={totalPages}
             value={currentPage}
             onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
             disabled={isScrollMode}
             readOnly={isScrollMode}
+            aria-label="当前页码"
+            inputMode="numeric"
+            autoComplete="off"
             title={isScrollMode ? '滚动模式下页码仅显示当前位置' : undefined}
             className="w-16 text-center"
           />
@@ -699,6 +723,8 @@ export function PDFReader({
               size="icon"
               onClick={() => goToPage(currentPage + 1)}
               disabled={totalPages > 0 && currentPage >= totalPages}
+              aria-label="下一页"
+              title="下一页"
             >
               <ChevronRightIcon />
             </Button>
@@ -710,14 +736,21 @@ export function PDFReader({
 
   // ==================== 渲染加载状态 ====================
   const renderLoading = () => (
-    <div className="flex h-full items-center justify-center">
+    <div
+      className="flex h-full items-center justify-center"
+      role="status"
+      aria-live="polite"
+    >
       <p className="text-muted-foreground">{loadingText}</p>
     </div>
   );
 
   // ==================== 渲染错误状态 ====================
   const renderError = () => (
-    <div className="flex h-full min-h-[400px] items-center justify-center px-4 text-center text-destructive">
+    <div
+      className="flex h-full min-h-[400px] items-center justify-center px-4 text-center text-destructive"
+      role="alert"
+    >
       <div className="max-w-md">
         <p className="mb-2 text-lg font-medium">文件加载失败</p>
         <p className="text-sm opacity-80">{error?.message}</p>

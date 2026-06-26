@@ -9,7 +9,9 @@ const createMockComponents = () => ({
       {children}
     </div>
   ),
-  CardContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CardContent: ({ children, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
   CardFooter: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   Table: ({ children, ...props }: any) => <table {...props}>{children}</table>,
   TableBody: ({ children, ...props }: any) => (
@@ -26,7 +28,9 @@ const createMockComponents = () => ({
       {children}
     </button>
   ),
-  DropdownMenu: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  DropdownMenu: ({ children, ...props }: any) => (
+    <div {...props}>{children}</div>
+  ),
   DropdownMenuTrigger: ({ children, asChild: _asChild, ...props }: any) => (
     <div {...props}>{children}</div>
   ),

@@ -49,17 +49,10 @@ export interface ImageReaderUIComponents {
   Skeleton?: SkeletonComponent;
 }
 
-export interface ImageReaderProps
-  extends Omit<
-    ImgHTMLAttributes<HTMLImageElement>,
-    | 'alt'
-    | 'children'
-    | 'className'
-    | 'loading'
-    | 'onError'
-    | 'onLoad'
-    | 'src'
-  > {
+export interface ImageReaderProps extends Omit<
+  ImgHTMLAttributes<HTMLImageElement>,
+  'alt' | 'children' | 'className' | 'loading' | 'onError' | 'onLoad' | 'src'
+> {
   src: string;
   alt?: string;
   fileName?: string;
@@ -330,6 +323,7 @@ export function ImageReader({
                 onLoad?.();
               }}
               src={src}
+              decoding="async"
               style={{
                 objectFit,
                 transform: `scale(${scale}) rotate(${rotation}deg)`,

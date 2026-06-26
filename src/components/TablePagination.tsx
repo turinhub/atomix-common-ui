@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type {
   ButtonComponent,
   SelectComponent,
+  SelectGroupComponent,
   SelectTriggerComponent,
   SelectContentComponent,
   SelectItemComponent,
@@ -16,6 +17,7 @@ import type {
 export interface PaginationUIComponents {
   Button: ButtonComponent;
   Select: SelectComponent;
+  SelectGroup?: SelectGroupComponent;
   SelectTrigger: SelectTriggerComponent;
   SelectContent: SelectContentComponent;
   SelectItem: SelectItemComponent;
@@ -72,6 +74,7 @@ export function TablePagination({
   const {
     Button,
     Select,
+    SelectGroup,
     SelectTrigger,
     SelectContent,
     SelectItem,
@@ -87,6 +90,11 @@ export function TablePagination({
   ).sort((a, b) => a - b);
   const canChangePageSize = showPageSizeSelector && Boolean(onPageSizeChange);
   const canSwitchPage = safeTotalPages > 1;
+  const pageSizeItems = availablePageSizeOptions.map((option) => (
+    <SelectItem key={option} value={String(option)}>
+      {option}
+    </SelectItem>
+  ));
 
   const goToPage = (page: number) => {
     const nextPage = Math.max(0, Math.min(page, safeTotalPages - 1));
@@ -132,12 +140,12 @@ export function TablePagination({
 
   return (
     <div
-      className={`flex w-full items-center gap-3 ${
+      className={`flex w-full min-w-0 flex-col gap-3 md:flex-row md:items-center ${
         showTotal ? 'justify-between' : 'justify-end'
       }`}
     >
       {showTotal && (
-        <div className="text-sm text-muted-foreground">
+        <div className="min-w-0 text-sm text-muted-foreground">
           {searchActive
             ? `找到 ${total} 条匹配记录`
             : total > 0
@@ -145,9 +153,9 @@ export function TablePagination({
               : '暂无数据'}
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex w-full flex-wrap items-center justify-start gap-2 md:w-auto md:justify-end">
         {canChangePageSize && (
-          <div className="mr-2 flex items-center gap-2">
+          <div className="mr-0 flex items-center gap-2 md:mr-2">
             <span className="text-sm text-muted-foreground">每页</span>
             <Select
               value={String(pageSize)}
@@ -167,17 +175,17 @@ export function TablePagination({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {availablePageSizeOptions.map((option) => (
-                  <SelectItem key={option} value={String(option)}>
-                    {option}
-                  </SelectItem>
-                ))}
+                {SelectGroup ? (
+                  <SelectGroup>{pageSizeItems}</SelectGroup>
+                ) : (
+                  pageSizeItems
+                )}
               </SelectContent>
             </Select>
             <span className="text-sm text-muted-foreground">条</span>
           </div>
         )}
-        <div className="mr-4 text-sm text-muted-foreground">
+        <div className="mr-0 text-sm tabular-nums text-muted-foreground md:mr-4">
           第 {currentPage + 1} 页，共 {safeTotalPages} 页
         </div>
         <Button
@@ -195,8 +203,9 @@ export function TablePagination({
               <span
                 key={`ellipsis-${index}`}
                 className="inline-flex h-8 w-8 items-center justify-center text-sm text-muted-foreground"
+                aria-hidden="true"
               >
-                ...
+                …
               </span>
             ) : (
               <Button
@@ -206,6 +215,7 @@ export function TablePagination({
                 onClick={() => goToPage(indicator)}
                 disabled={indicator === currentPage}
                 aria-current={indicator === currentPage ? 'page' : undefined}
+                className="min-w-8 tabular-nums"
               >
                 {indicator + 1}
               </Button>
@@ -236,13 +246,16 @@ export function TablePagination({
             <span className="text-sm text-muted-foreground">跳至</span>
             <input
               type="number"
+              name="jumpPage"
               min={1}
               max={safeTotalPages}
               value={jumpPageInput}
               disabled={!canSwitchPage}
               onChange={(event) => setJumpPageInput(event.target.value)}
-              className="h-8 w-16 rounded-md border border-input bg-background px-2 text-sm"
+              className="h-8 w-16 rounded-md border border-input bg-background px-2 text-sm tabular-nums shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="跳转页码"
+              inputMode="numeric"
+              autoComplete="off"
             />
             <Button
               type="submit"

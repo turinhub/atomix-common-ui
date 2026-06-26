@@ -1,16 +1,17 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 
 import { TableHeader } from '../TableHeader';
 
 const createMockComponents = () => ({
-  Input: ({ value, onChange, placeholder }: any) => (
+  Input: ({ value, onChange, placeholder, ...props }: any) => (
     <input
       data-testid="search-input"
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      {...props}
     />
   ),
   Button: ({ children, onClick }: any) => (
@@ -61,6 +62,30 @@ describe('TableHeader', () => {
     await user.type(input, 'test');
 
     expect(onSearchChange).toHaveBeenCalled();
+  });
+
+  it('IME 组词 Enter 不应该提前触发搜索', () => {
+    const mockComponents = createMockComponents();
+    const onSearch = vi.fn();
+
+    render(
+      <TableHeader
+        components={mockComponents}
+        title="测试标题"
+        showSearch={true}
+        onSearch={onSearch}
+      />
+    );
+
+    const input = screen.getByTestId('search-input');
+    fireEvent.keyDown(input, {
+      key: 'Enter',
+      isComposing: true,
+    });
+    expect(onSearch).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onSearch).toHaveBeenCalledTimes(1);
   });
 
   it('应该渲染操作按钮', () => {

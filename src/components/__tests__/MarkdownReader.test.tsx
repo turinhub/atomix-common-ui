@@ -47,9 +47,7 @@ const value = 1;
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue({} as Response);
 
-    render(
-      <MarkdownReader content="# Local content" sourceUrl="/remote.md" />
-    );
+    render(<MarkdownReader content="# Local content" sourceUrl="/remote.md" />);
 
     expect(
       await screen.findByRole('heading', { name: 'Local content' })
@@ -98,7 +96,9 @@ const value = 1;
       status: 404,
     } as Response);
 
-    render(<MarkdownReader sourceUrl="/missing.md" onLoadError={onLoadError} />);
+    render(
+      <MarkdownReader sourceUrl="/missing.md" onLoadError={onLoadError} />
+    );
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Markdown 加载失败'
@@ -129,11 +129,20 @@ const value = 1;
       />
     );
 
-    expect(await screen.findByRole('link', { name: '示例图片' })).toHaveAttribute(
-      'href',
-      'https://example.com/image.png'
-    );
+    expect(
+      await screen.findByRole('link', { name: '示例图片' })
+    ).toHaveAttribute('href', 'https://example.com/image.png');
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('renders markdown images with lazy async decoding', async () => {
+    render(
+      <MarkdownReader content="![示例图片](https://example.com/image.png)" />
+    );
+
+    const image = await screen.findByRole('img', { name: '示例图片' });
+    expect(image).toHaveAttribute('loading', 'lazy');
+    expect(image).toHaveAttribute('decoding', 'async');
   });
 
   it('opens links in a new tab by default', async () => {

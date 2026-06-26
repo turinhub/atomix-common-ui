@@ -74,6 +74,7 @@ export interface SelectComponentProps extends UIComponentProps {
 }
 
 export type SelectComponent = UIComponent<SelectComponentProps>;
+export type SelectGroupComponent = UIComponent<HTMLAttributes<HTMLDivElement>>;
 export type SelectTriggerComponent = UIComponent<
   ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
 >;

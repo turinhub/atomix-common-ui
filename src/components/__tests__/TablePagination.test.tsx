@@ -9,6 +9,9 @@ const createMockComponents = () => ({
     <button {...props}>{children}</button>
   ),
   Select: ({ children }: any) => <div data-testid="select">{children}</div>,
+  SelectGroup: ({ children }: any) => (
+    <div data-testid="select-group">{children}</div>
+  ),
   SelectTrigger: ({ children }: any) => <div>{children}</div>,
   SelectContent: ({ children }: any) => <div>{children}</div>,
   SelectItem: ({ children, value, onClick }: any) => (
@@ -91,7 +94,8 @@ describe('TablePagination', () => {
   });
 
   it('应该显示每页条数选择器', () => {
-    const mockComponents = createMockComponents();
+    const { SelectGroup: _SelectGroup, ...mockComponents } =
+      createMockComponents();
 
     render(
       <TablePagination
@@ -106,6 +110,25 @@ describe('TablePagination', () => {
     );
 
     expect(screen.getByTestId('select')).toBeInTheDocument();
+    expect(screen.queryByTestId('select-group')).not.toBeInTheDocument();
+  });
+
+  it('应该在注入 SelectGroup 时包裹每页条数选项', () => {
+    const mockComponents = createMockComponents();
+
+    render(
+      <TablePagination
+        components={mockComponents}
+        currentPage={1}
+        pageSize={10}
+        total={100}
+        onPageChange={vi.fn()}
+        onPageSizeChange={vi.fn()}
+        pageSizeOptions={[10, 20, 50]}
+      />
+    );
+
+    expect(screen.getByTestId('select-group')).toBeInTheDocument();
   });
 
   it('应该支持点击数字页码跳转', async () => {

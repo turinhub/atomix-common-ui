@@ -43,9 +43,7 @@ const normalizeError = (error: Error | string | null | undefined) => {
 };
 
 const getMarkdownLoadError = (error: unknown) =>
-  error instanceof Error
-    ? error
-    : new Error('无法加载 Markdown 渲染依赖');
+  error instanceof Error ? error : new Error('无法加载 Markdown 渲染依赖');
 
 const defaultContentClassName =
   'markdown-reader-content max-w-none text-sm leading-7 text-slate-800 dark:text-slate-100 ' +
@@ -191,7 +189,7 @@ export function MarkdownReader({
   const markdownComponents = useMemo(
     () => ({
       a({ href, children, ...props }: any) {
-        const nextHref = href ? transformLinkHref?.(href) ?? href : undefined;
+        const nextHref = href ? (transformLinkHref?.(href) ?? href) : undefined;
 
         return (
           <a
@@ -217,7 +215,17 @@ export function MarkdownReader({
           );
         }
 
-        return <img {...props} src={nextSrc} alt={alt || ''} loading="lazy" />;
+        return (
+          <span className="block overflow-hidden rounded-lg bg-muted/20">
+            <img
+              {...props}
+              src={nextSrc}
+              alt={alt || ''}
+              loading="lazy"
+              decoding="async"
+            />
+          </span>
+        );
       },
       input({ checked, type, ...props }: any) {
         if (type !== 'checkbox') {
@@ -235,12 +243,7 @@ export function MarkdownReader({
         );
       },
     }),
-    [
-      allowImages,
-      openLinksInNewTab,
-      transformImageSrc,
-      transformLinkHref,
-    ]
+    [allowImages, openLinksInNewTab, transformImageSrc, transformLinkHref]
   );
 
   const renderLoading = () => (

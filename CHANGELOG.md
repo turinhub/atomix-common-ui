@@ -6,6 +6,27 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-26
+
+### 新增
+
+- playground 新增 URL 查询参数同步、可分享配置状态和对应测试，覆盖页面、主题、表格、媒体、Markdown 与 PDF 阅读器配置。
+- playground 新增 Radix Switch 控件和开关交互测试，用于验证表格、媒体与 PDF 功能开关。
+
+### 变更
+
+- 优化 playground 视觉与交互体验，补充暗色模式 meta、主题色同步、响应式配置面板和更多组件状态示例。
+- 优化基础 UI 组件的焦点环、触控反馈、紧凑圆角、弹窗滚动和暗色模式背景表现。
+- 优化认证、上传、表格、分页、图片、视频、Markdown 与 PDF 阅读组件的长内容、移动端、焦点、加载、错误和辅助技术可读性。
+- `TablePagination` 支持可选注入 `SelectGroup`，便于适配 shadcn/Radix Select 分组选项结构。
+- `AuthVisualCarousel` 支持为轮播图传入 `width` 和 `height`，并默认提供稳定图片尺寸。
+
+### 修复
+
+- 修复 `TableHeader` 在中文输入法组词期间按 Enter 会提前触发搜索的问题。
+- 修复 `SimplePDFReader` 快捷键在 textarea、select、contenteditable、textbox 和 spinbutton 聚焦时仍可能被触发的问题。
+- 为 PDF 阅读器、分页缩略图、上传区域和图标按钮补充可访问名称、状态语义与焦点反馈，改善键盘和读屏体验。
+
 ## [0.5.0] - 2026-06-03
 
 ### 新增

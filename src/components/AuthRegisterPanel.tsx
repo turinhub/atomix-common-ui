@@ -153,7 +153,8 @@ export function AuthRegisterPanel({
     const validationError =
       (!payload.username && '请输入用户名') ||
       (!payload.password && '请输入密码') ||
-      (payload.password !== payload.confirmPassword && '两次输入的密码不一致') ||
+      (payload.password !== payload.confirmPassword &&
+        '两次输入的密码不一致') ||
       (requirePhoneVerification && validatePhone(phone)) ||
       (requirePhoneVerification && !payload.code && '请输入验证码') ||
       (requireTermsAccepted && !termsAccepted && '请先同意服务条款') ||
@@ -202,17 +203,19 @@ export function AuthRegisterPanel({
   return (
     <div
       className={cn(
-        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-white/45 bg-background/60 p-5 shadow-2xl shadow-slate-950/25 backdrop-blur-md supports-[backdrop-filter]:bg-background/50 md:p-8',
+        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-white/45 bg-background/70 p-5 shadow-2xl shadow-slate-950/25 backdrop-blur-md supports-[backdrop-filter]:bg-background/55 md:p-8',
         className
       )}
     >
       <div className="mb-7">
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/10">
           {brandIcon || <Layers3 className="h-5 w-5" />}
         </div>
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="text-balance text-2xl font-semibold leading-tight">
+          {title}
+        </h1>
         {description && (
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-pretty text-sm leading-6 text-muted-foreground">
             {description}
           </p>
         )}
@@ -232,6 +235,7 @@ export function AuthRegisterPanel({
                 className="bg-background/80 pl-9 backdrop-blur"
                 placeholder="请输入用户名"
                 autoComplete="username"
+                spellCheck={false}
                 required
               />
             </div>
@@ -288,6 +292,8 @@ export function AuthRegisterPanel({
                       required
                       maxLength={13}
                       inputMode="numeric"
+                      autoComplete="tel"
+                      spellCheck={false}
                     />
                   </div>
                   <Button
@@ -326,7 +332,7 @@ export function AuthRegisterPanel({
             <label className="flex items-start gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-input"
+                className="mt-0.5 h-4 w-4 rounded border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 checked={termsAccepted}
                 onChange={(event) => setTermsAccepted(event.target.checked)}
               />
@@ -356,11 +362,16 @@ export function AuthRegisterPanel({
 
       {extraActions && <div className="mt-5">{extraActions}</div>}
       {displayedError && (
-        <div className="mt-4 border-l-2 border-red-600 px-4 text-sm text-red-600 dark:border-red-400 dark:text-red-400">
+        <div
+          className="mt-4 border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          aria-live="polite"
+        >
           {displayedError}
         </div>
       )}
-      {footer && <div className="mt-6 text-sm text-muted-foreground">{footer}</div>}
+      {footer && (
+        <div className="mt-6 text-sm text-muted-foreground">{footer}</div>
+      )}
     </div>
   );
 }

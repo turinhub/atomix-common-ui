@@ -392,9 +392,13 @@ describe('PDFSidebar', () => {
       />
     );
 
-    // Wait for thumbnails to load
-    const thumbnail3 = await screen.findByAltText('Page 3');
-    await user.click(thumbnail3);
+    await screen.findByAltText('Page 3');
+    const thumbnailButton = screen.getByRole('button', {
+      name: '跳转到第 3 页',
+    });
+    expect(screen.getByAltText('Page 3')).toHaveAttribute('width', '192');
+    expect(screen.getByAltText('Page 3')).toHaveAttribute('height', '272');
+    await user.click(thumbnailButton);
 
     expect(onPageClick).toHaveBeenCalledWith(3);
   });

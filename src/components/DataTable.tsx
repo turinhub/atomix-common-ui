@@ -1,10 +1,6 @@
 import { MoreVertical } from 'lucide-react';
 import { ReactNode } from 'react';
-import type {
-  HTMLAttributes,
-  ButtonHTMLAttributes,
-  MouseEvent,
-} from 'react';
+import type { HTMLAttributes, ButtonHTMLAttributes, MouseEvent } from 'react';
 
 import type {
   UIComponent,

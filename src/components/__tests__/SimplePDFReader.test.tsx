@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -68,17 +68,18 @@ const createMockComponents = () => ({
       {children}
     </div>
   ),
-  Button: ({ children, className, disabled, onClick }: any) => (
+  Button: ({ children, className, disabled, onClick, ...props }: any) => (
     <button
       className={className}
       data-testid="button"
       disabled={disabled}
       onClick={disabled ? undefined : onClick}
+      {...props}
     >
       {children}
     </button>
   ),
-  Input: ({ className, value, onChange, min, max }: any) => (
+  Input: ({ className, value, onChange, min, max, ...props }: any) => (
     <input
       className={className}
       data-testid="input"
@@ -87,6 +88,7 @@ const createMockComponents = () => ({
       max={max}
       value={value}
       onChange={onChange}
+      {...props}
     />
   ),
   Label: ({ children, className }: any) => (
@@ -154,6 +156,34 @@ describe('SimplePDFReader', () => {
     // Wait for loading to complete
     const zoomText = await screen.findByText('100%');
     expect(zoomText).toBeInTheDocument();
+  });
+
+  it('工具栏和分页图标按钮应该有可访问名称', async () => {
+    const mockComponents = createMockComponents();
+
+    render(<SimplePDFReader url="/test.pdf" components={mockComponents} />);
+
+    await screen.findByText('100%');
+
+    expect(screen.getByRole('button', { name: '缩小' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '放大' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '进入全屏' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '上一页' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '下一页' })).toBeInTheDocument();
+    expect(screen.getByLabelText('当前页码')).toHaveAttribute(
+      'name',
+      'simple-pdf-page'
+    );
+  });
+
+  it('加载状态应该暴露给辅助技术', () => {
+    const mockComponents = createMockComponents();
+
+    render(<SimplePDFReader url="/test.pdf" components={mockComponents} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('加载中');
   });
 
   it('应该隐藏工具栏', async () => {
@@ -490,6 +520,29 @@ describe('SimplePDFReader', () => {
 
       // Component should still render
       expect(screen.getByTestId('input')).toBeInTheDocument();
+    });
+
+    it('输入类元素聚焦时不应该触发快捷键', async () => {
+      const mockComponents = createMockComponents();
+      const onPageChange = vi.fn();
+
+      render(
+        <SimplePDFReader
+          url="/test.pdf"
+          components={mockComponents}
+          onPageChange={onPageChange}
+        />
+      );
+
+      await screen.findByTestId('input');
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+      textarea.focus();
+
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+
+      expect(onPageChange).not.toHaveBeenCalled();
+      textarea.remove();
     });
   });
 });

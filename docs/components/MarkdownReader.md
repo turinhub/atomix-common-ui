@@ -46,7 +46,7 @@ import { Skeleton } from '@/components/ui/skeleton';
   onLoadError={(error) => {
     console.error(error);
   }}
-/>;
+/>
 ```
 
 如果同时传入 `content` 和 `sourceUrl`，组件会优先渲染 `content`，不会请求 `sourceUrl`。
@@ -60,7 +60,7 @@ import { Skeleton } from '@/components/ui/skeleton';
   openLinksInNewTab
   transformLinkHref={(href) => href}
   transformImageSrc={(src) => `/proxy-image?url=${encodeURIComponent(src)}`}
-/>;
+/>
 ```
 
 - `allowImages` 默认为 `true`；设为 `false` 时图片会渲染为普通链接。
@@ -69,23 +69,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 ## Props
 
-| Prop                 | 类型                                      | 默认值                       | 说明                         |
-| -------------------- | ----------------------------------------- | ---------------------------- | ---------------------------- |
-| `content`            | `string`                                  | -                            | Markdown 文本                |
-| `sourceUrl`          | `string`                                  | -                            | Markdown 文本 URL            |
-| `components`         | `MarkdownReaderUIComponents`              | -                            | 可选 UI 组件注入             |
-| `loading`            | `boolean`                                 | `false`                      | 外部加载态                   |
-| `error`              | `Error \| string \| null`                 | -                            | 外部错误态                   |
-| `className`          | `string`                                  | -                            | 外层容器类名                 |
-| `contentClassName`   | `string`                                  | -                            | 内容区域类名                 |
-| `loadingText`        | `string`                                  | `正在加载 Markdown 内容...`  | 加载文案                     |
-| `errorText`          | `string`                                  | `Markdown 加载失败`          | 错误标题                     |
-| `emptyText`          | `string`                                  | `暂无 Markdown 内容`         | 空状态文案                   |
-| `allowImages`        | `boolean`                                 | `true`                       | 是否渲染图片                 |
-| `openLinksInNewTab`  | `boolean`                                 | `true`                       | 是否新窗口打开链接           |
-| `transformLinkHref`  | `(href: string) => string \| undefined`   | -                            | 链接地址转换                 |
-| `transformImageSrc`  | `(src: string) => string \| undefined`    | -                            | 图片地址转换                 |
-| `onLoadError`        | `(error: Error) => void`                  | -                            | 依赖加载或远程内容加载失败时 |
+| Prop                | 类型                                    | 默认值                      | 说明                         |
+| ------------------- | --------------------------------------- | --------------------------- | ---------------------------- |
+| `content`           | `string`                                | -                           | Markdown 文本                |
+| `sourceUrl`         | `string`                                | -                           | Markdown 文本 URL            |
+| `components`        | `MarkdownReaderUIComponents`            | -                           | 可选 UI 组件注入             |
+| `loading`           | `boolean`                               | `false`                     | 外部加载态                   |
+| `error`             | `Error \| string \| null`               | -                           | 外部错误态                   |
+| `className`         | `string`                                | -                           | 外层容器类名                 |
+| `contentClassName`  | `string`                                | -                           | 内容区域类名                 |
+| `loadingText`       | `string`                                | `正在加载 Markdown 内容...` | 加载文案                     |
+| `errorText`         | `string`                                | `Markdown 加载失败`         | 错误标题                     |
+| `emptyText`         | `string`                                | `暂无 Markdown 内容`        | 空状态文案                   |
+| `allowImages`       | `boolean`                               | `true`                      | 是否渲染图片                 |
+| `openLinksInNewTab` | `boolean`                               | `true`                      | 是否新窗口打开链接           |
+| `transformLinkHref` | `(href: string) => string \| undefined` | -                           | 链接地址转换                 |
+| `transformImageSrc` | `(src: string) => string \| undefined`  | -                           | 图片地址转换                 |
+| `onLoadError`       | `(error: Error) => void`                | -                           | 依赖加载或远程内容加载失败时 |
 
 ## UI 注入
 

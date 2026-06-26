@@ -41,16 +41,17 @@ export interface VideoReaderUIComponents {
   Skeleton?: SkeletonComponent;
 }
 
-export interface VideoReaderTrack
-  extends Omit<TrackHTMLAttributes<HTMLTrackElement>, 'children'> {
+export interface VideoReaderTrack extends Omit<
+  TrackHTMLAttributes<HTMLTrackElement>,
+  'children'
+> {
   src: string;
 }
 
-export interface VideoReaderProps
-  extends Omit<
-    VideoHTMLAttributes<HTMLVideoElement>,
-    'children' | 'className' | 'onError' | 'onLoadedData' | 'src'
-  > {
+export interface VideoReaderProps extends Omit<
+  VideoHTMLAttributes<HTMLVideoElement>,
+  'children' | 'className' | 'onError' | 'onLoadedData' | 'src'
+> {
   src: string;
   fileName?: string;
   mimeType?: string;
@@ -211,8 +212,10 @@ export function VideoReader({
             {title || formatLabel}
           </span>
           {showOpenInNewTab
-            ? renderButton('新窗口打开', <ExternalLinkIcon className="h-4 w-4" />, () =>
-                window.open(src, '_blank', 'noreferrer')
+            ? renderButton(
+                '新窗口打开',
+                <ExternalLinkIcon className="h-4 w-4" />,
+                () => window.open(src, '_blank', 'noreferrer')
               )
             : null}
         </div>

@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -10,7 +16,9 @@ import { AuthRegisterPanel } from '../AuthRegisterPanel';
 import { AuthVisualCarousel } from '../AuthVisualCarousel';
 
 const createAuthComponents = () => ({
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
+  ),
   Input: (props: any) => <input {...props} />,
   Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
   Tabs: ({ children, value, onValueChange, ...props }: any) => (
@@ -299,6 +307,15 @@ describe('AuthVisualCarousel', () => {
     expect(screen.getByText('第一张描述')).toBeInTheDocument();
     expect(screen.getByLabelText('切换到第 1 张轮播图')).toBeInTheDocument();
     expect(screen.getByLabelText('切换到第 2 张轮播图')).toBeInTheDocument();
+  });
+
+  it('renders carousel images with stable dimensions', () => {
+    render(<AuthVisualCarousel items={[...carouselItems]} />);
+
+    const image = screen.getByAltText('第一张图');
+    expect(image).toHaveAttribute('width', '1600');
+    expect(image).toHaveAttribute('height', '900');
+    expect(image).toHaveAttribute('decoding', 'async');
   });
 
   it('switches slide by indicator click', async () => {

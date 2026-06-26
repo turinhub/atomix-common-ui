@@ -330,12 +330,16 @@ export function SimplePDFReader({
     if (!enableHotkeys) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't handle hotkeys if input is focused
-      const activeElement = document.activeElement;
+      const activeElement = document.activeElement as HTMLElement | null;
+      const role = activeElement?.getAttribute('role');
       if (
         activeElement &&
         (activeElement.tagName === 'INPUT' ||
-          activeElement.getAttribute('role') === 'input')
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.tagName === 'SELECT' ||
+          activeElement.isContentEditable ||
+          role === 'textbox' ||
+          role === 'spinbutton')
       ) {
         return;
       }
@@ -410,6 +414,8 @@ export function SimplePDFReader({
           size="sm"
           onClick={handleZoomOut}
           disabled={scale <= minScale}
+          aria-label="缩小"
+          title="缩小"
         >
           <ZoomOutIcon />
         </Button>
@@ -419,6 +425,8 @@ export function SimplePDFReader({
           size="sm"
           onClick={handleZoomIn}
           disabled={scale >= maxScale}
+          aria-label="放大"
+          title="放大"
         >
           <ZoomInIcon />
         </Button>
@@ -428,6 +436,8 @@ export function SimplePDFReader({
           onClick={() => {
             void handleToggleFullscreen();
           }}
+          aria-label={isFullscreen ? '退出全屏' : '进入全屏'}
+          title={isFullscreen ? '退出全屏' : '进入全屏'}
         >
           {isFullscreen ? <Minimize2Icon /> : <Maximize2Icon />}
         </Button>
@@ -446,26 +456,36 @@ export function SimplePDFReader({
           size="icon"
           onClick={handlePreviousPage}
           disabled={currentPage <= 1}
+          aria-label="上一页"
+          title="上一页"
         >
           <ChevronLeftIcon />
         </Button>
         {InputComponentInjected ? (
           <InputComponentInjected
             type="number"
+            name="simple-pdf-page"
             min={1}
             max={Math.max(totalPages, 1)}
             value={currentPage}
             onChange={(e) => goToPage(parseInt(e.target.value, 10) || 1)}
             className="w-16 text-center"
+            aria-label="当前页码"
+            inputMode="numeric"
+            autoComplete="off"
           />
         ) : (
           <input
             type="number"
+            name="simple-pdf-page"
             min={1}
             max={Math.max(totalPages, 1)}
             value={currentPage}
             onChange={(e) => goToPage(parseInt(e.target.value, 10) || 1)}
             className="w-16 rounded-md border border-input bg-background px-2 text-center text-sm"
+            aria-label="当前页码"
+            inputMode="numeric"
+            autoComplete="off"
           />
         )}
         <span className="text-sm text-muted-foreground">/ {totalPages}</span>
@@ -474,6 +494,8 @@ export function SimplePDFReader({
           size="icon"
           onClick={handleNextPage}
           disabled={currentPage >= totalPages}
+          aria-label="下一页"
+          title="下一页"
         >
           <ChevronRightIcon />
         </Button>
@@ -497,7 +519,11 @@ export function SimplePDFReader({
 
   // 渲染加载状态
   const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center space-y-4 p-8">
+    <div
+      className="flex flex-col items-center justify-center space-y-4 p-8"
+      role="status"
+      aria-live="polite"
+    >
       <Skeleton className="h-8 w-32" />
       <Skeleton className="h-64 w-full max-w-2xl" />
       <p className="text-sm text-muted-foreground">{loadingText}</p>
@@ -506,7 +532,10 @@ export function SimplePDFReader({
 
   // 渲染错误状态
   const renderError = () => (
-    <div className="flex flex-col items-center justify-center space-y-4 p-8">
+    <div
+      className="flex flex-col items-center justify-center space-y-4 p-8"
+      role="alert"
+    >
       <div className="text-center text-destructive">
         <p className="font-medium">{errorText}</p>
         {error && (
