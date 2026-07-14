@@ -3,20 +3,30 @@ import {
   Layers3,
   Loader2,
   LockKeyhole,
-  MessageCircle,
+  Phone,
+  ShieldCheck,
   UserRound,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import { useEffect, useId, useState } from 'react';
+import type { FormEvent, MouseEvent, ReactNode } from 'react';
 
 import { cn } from '../lib/utils';
 
+import { AuthInputIcon } from './AuthInputIcon';
 import type {
   AuthSmsCodeResult,
   AuthSocialProvider,
   AuthUIComponents,
   AuthValidationResult,
 } from './AuthLoginPanel';
+
+type AuthRegisterErrorField =
+  | 'username'
+  | 'password'
+  | 'confirmPassword'
+  | 'phone'
+  | 'code'
+  | 'termsAccepted';
 
 export interface AuthRegisterPayload {
   username: string;
@@ -89,15 +99,34 @@ export function AuthRegisterPanel({
   onSendSmsCode,
   onRegister,
 }: AuthRegisterPanelProps) {
+  const id = useId();
   const [phone, setPhone] = useState('');
   const [smsId, setSmsId] = useState<string | undefined>();
   const [smsType, setSmsType] = useState<string | undefined>();
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [localError, setLocalError] = useState<ReactNode>();
+  const [localErrorField, setLocalErrorField] =
+    useState<AuthRegisterErrorField>();
   const [registerPending, setRegisterPending] = useState(false);
   const [codePending, setCodePending] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const displayedError = localError || error;
+  const displayedFormError = localErrorField ? undefined : localError || error;
+  const fieldIds = {
+    username: `${id}-username`,
+    password: `${id}-password`,
+    confirmPassword: `${id}-confirm-password`,
+    phone: `${id}-phone`,
+    code: `${id}-code`,
+    termsAccepted: `${id}-terms`,
+  } satisfies Record<AuthRegisterErrorField, string>;
+  const errorIds = {
+    username: `${id}-username-error`,
+    password: `${id}-password-error`,
+    confirmPassword: `${id}-confirm-password-error`,
+    phone: `${id}-phone-error`,
+    code: `${id}-code-error`,
+    termsAccepted: `${id}-terms-error`,
+  } satisfies Record<AuthRegisterErrorField, string>;
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -115,22 +144,61 @@ export function AuthRegisterPanel({
 
   const { Button, Input, Label } = components;
 
-  const handleSendCode = async () => {
+  const clearLocalError = () => {
+    setLocalError(undefined);
+    setLocalErrorField(undefined);
+  };
+
+  const focusField = (
+    form: HTMLFormElement | null,
+    field: AuthRegisterErrorField
+  ) => {
+    const element = form?.elements.namedItem(field);
+    if (element instanceof HTMLElement) element.focus();
+  };
+
+  const showFieldError = (
+    message: ReactNode,
+    field: AuthRegisterErrorField,
+    form: HTMLFormElement | null
+  ) => {
+    setLocalError(message);
+    setLocalErrorField(field);
+    focusField(form, field);
+  };
+
+  const clearFieldError = (field: AuthRegisterErrorField) => {
+    if (localErrorField === field) clearLocalError();
+  };
+
+  const renderFieldError = (field: AuthRegisterErrorField) =>
+    localErrorField === field && localError ? (
+      <p
+        id={errorIds[field]}
+        className="break-words text-sm text-destructive"
+        aria-live="polite"
+      >
+        {localError}
+      </p>
+    ) : null;
+
+  const handleSendCode = async (event: MouseEvent<HTMLButtonElement>) => {
     const validationError = validatePhone(phone);
     if (validationError) {
-      setLocalError(validationError);
+      showFieldError(validationError, 'phone', event.currentTarget.form);
       return;
     }
 
     try {
       setCodePending(true);
-      setLocalError(undefined);
+      clearLocalError();
       const result = await onSendSmsCode?.(phone);
       setSmsId(result?.smsId);
       setSmsType(result?.smsType);
       setCountdown(smsCountdownSeconds);
     } catch (err) {
       setLocalError(getErrorMessage(err, '发送验证码失败，请稍后重试'));
+      setLocalErrorField(undefined);
     } finally {
       setCodePending(false);
     }
@@ -138,7 +206,8 @@ export function AuthRegisterPanel({
 
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const payload: AuthRegisterPayload = {
       username: String(formData.get('username') || '').trim(),
       password: String(formData.get('password') || ''),
@@ -150,28 +219,53 @@ export function AuthRegisterPanel({
       termsAccepted,
     };
 
-    const validationError =
-      (!payload.username && '请输入用户名') ||
-      (!payload.password && '请输入密码') ||
-      (payload.password !== payload.confirmPassword &&
-        '两次输入的密码不一致') ||
-      (requirePhoneVerification && validatePhone(phone)) ||
-      (requirePhoneVerification && !payload.code && '请输入验证码') ||
-      (requireTermsAccepted && !termsAccepted && '请先同意服务条款') ||
-      validatePassword?.(payload) ||
-      validateRegister?.(payload);
-
-    if (validationError) {
-      setLocalError(validationError);
+    if (!payload.username) {
+      showFieldError('请输入用户名', 'username', form);
+      return;
+    }
+    if (!payload.password) {
+      showFieldError('请输入密码', 'password', form);
+      return;
+    }
+    if (payload.password !== payload.confirmPassword) {
+      showFieldError('两次输入的密码不一致', 'confirmPassword', form);
+      return;
+    }
+    const phoneValidationError = requirePhoneVerification
+      ? validatePhone(phone)
+      : undefined;
+    if (phoneValidationError) {
+      showFieldError(phoneValidationError, 'phone', form);
+      return;
+    }
+    if (requirePhoneVerification && !payload.code) {
+      showFieldError('请输入验证码', 'code', form);
+      return;
+    }
+    if (requireTermsAccepted && !termsAccepted) {
+      showFieldError('请先同意服务条款', 'termsAccepted', form);
+      return;
+    }
+    const passwordValidationError = validatePassword?.(payload);
+    if (passwordValidationError) {
+      showFieldError(passwordValidationError, 'password', form);
+      return;
+    }
+    const registerValidationError = validateRegister?.(payload);
+    if (registerValidationError) {
+      setLocalError(registerValidationError);
+      setLocalErrorField(undefined);
+      focusField(form, 'username');
       return;
     }
 
     try {
       setRegisterPending(true);
-      setLocalError(undefined);
+      clearLocalError();
       await onRegister?.(payload);
     } catch (err) {
-      setLocalError(getErrorMessage(err, '注册失败，请稍后重试'));
+      setLocalError(getErrorMessage(err, '注册失败，请检查填写内容后重试'));
+      setLocalErrorField(undefined);
     } finally {
       setRegisterPending(false);
     }
@@ -185,12 +279,15 @@ export function AuthRegisterPanel({
             key={provider.id}
             type="button"
             variant="outline"
-            className="h-10 w-full"
+            className="h-10 w-full touch-manipulation"
             disabled={provider.disabled}
             onClick={provider.onClick}
           >
             {provider.icon && (
-              <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
+              <span
+                className="mr-2 inline-flex h-4 w-4 items-center justify-center"
+                aria-hidden="true"
+              >
                 {provider.icon}
               </span>
             )}
@@ -203,15 +300,15 @@ export function AuthRegisterPanel({
   return (
     <div
       className={cn(
-        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-white/45 bg-background/70 p-5 shadow-2xl shadow-slate-950/25 backdrop-blur-md supports-[backdrop-filter]:bg-background/55 md:p-8',
+        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-background/90 p-5 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:p-8',
         className
       )}
     >
       <div className="mb-7">
         <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/10">
-          {brandIcon || <Layers3 className="h-5 w-5" />}
+          {brandIcon || <Layers3 className="h-5 w-5" aria-hidden="true" />}
         </div>
-        <h1 className="text-balance text-2xl font-semibold leading-tight">
+        <h1 className="text-balance break-words text-2xl font-semibold leading-tight">
           {title}
         </h1>
         {description && (
@@ -223,88 +320,133 @@ export function AuthRegisterPanel({
 
       {renderSocialProviders()}
 
-      <form className="flex flex-col" onSubmit={handleRegister}>
+      <form
+        className="flex flex-col"
+        onSubmit={handleRegister}
+        noValidate
+        aria-busy={registerPending || codePending}
+      >
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
-            <Label htmlFor="auth-register-username">用户名</Label>
+            <Label htmlFor={fieldIds.username}>用户名</Label>
             <div className="relative">
-              <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <AuthInputIcon>
+                <UserRound className="h-4 w-4" />
+              </AuthInputIcon>
               <Input
-                id="auth-register-username"
+                id={fieldIds.username}
                 name="username"
                 className="bg-background/80 pl-9 backdrop-blur"
-                placeholder="请输入用户名"
+                placeholder="请输入用户名…"
                 autoComplete="username"
                 spellCheck={false}
+                aria-invalid={localErrorField === 'username'}
+                aria-describedby={
+                  localErrorField === 'username' ? errorIds.username : undefined
+                }
+                onChange={() => clearFieldError('username')}
                 required
               />
             </div>
+            {renderFieldError('username')}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="auth-register-password">密码</Label>
+            <Label htmlFor={fieldIds.password}>密码</Label>
             <div className="relative">
-              <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <AuthInputIcon>
+                <LockKeyhole className="h-4 w-4" />
+              </AuthInputIcon>
               <Input
-                id="auth-register-password"
+                id={fieldIds.password}
                 name="password"
                 className="bg-background/80 pl-9 backdrop-blur"
                 type="password"
-                placeholder="请输入密码"
+                placeholder="请输入密码…"
                 autoComplete="new-password"
+                aria-invalid={localErrorField === 'password'}
+                aria-describedby={
+                  localErrorField === 'password' ? errorIds.password : undefined
+                }
+                onChange={() => clearFieldError('password')}
                 required
               />
             </div>
+            {renderFieldError('password')}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="auth-register-confirm-password">确认密码</Label>
+            <Label htmlFor={fieldIds.confirmPassword}>确认密码</Label>
             <div className="relative">
-              <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <AuthInputIcon>
+                <LockKeyhole className="h-4 w-4" />
+              </AuthInputIcon>
               <Input
-                id="auth-register-confirm-password"
+                id={fieldIds.confirmPassword}
                 name="confirmPassword"
                 className="bg-background/80 pl-9 backdrop-blur"
                 type="password"
-                placeholder="请再次输入密码"
+                placeholder="请再次输入密码…"
                 autoComplete="new-password"
+                aria-invalid={localErrorField === 'confirmPassword'}
+                aria-describedby={
+                  localErrorField === 'confirmPassword'
+                    ? errorIds.confirmPassword
+                    : undefined
+                }
+                onChange={() => clearFieldError('confirmPassword')}
                 required
               />
             </div>
+            {renderFieldError('confirmPassword')}
           </div>
 
           {requirePhoneVerification && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="auth-register-phone">手机号</Label>
-                <div className="flex gap-2">
-                  <div className="relative w-full">
-                    <MessageCircle className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Label htmlFor={fieldIds.phone}>手机号</Label>
+                <div className="flex items-start gap-2">
+                  <div className="relative min-w-0 flex-1">
+                    <AuthInputIcon>
+                      <Phone className="h-4 w-4" />
+                    </AuthInputIcon>
                     <Input
-                      id="auth-register-phone"
+                      id={fieldIds.phone}
                       name="phone"
                       className="bg-background/80 pl-9 backdrop-blur"
-                      placeholder="请输入手机号"
+                      type="tel"
+                      placeholder="例如：138 0013 8000…"
                       value={formatPhone(phone)}
-                      onChange={(event) =>
-                        setPhone(normalizePhone(event.target.value))
-                      }
+                      onChange={(event) => {
+                        setPhone(normalizePhone(event.target.value));
+                        clearFieldError('phone');
+                      }}
                       required
                       maxLength={13}
                       inputMode="numeric"
                       autoComplete="tel"
                       spellCheck={false}
+                      aria-invalid={localErrorField === 'phone'}
+                      aria-describedby={
+                        localErrorField === 'phone' ? errorIds.phone : undefined
+                      }
                     />
                   </div>
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-10 w-28 shrink-0 bg-background/70 backdrop-blur hover:bg-background/90"
+                    className="h-10 w-28 shrink-0 touch-manipulation bg-background/70 px-2 tabular-nums backdrop-blur hover:bg-background/90"
                     onClick={handleSendCode}
-                    disabled={!phone || codePending || countdown > 0}
+                    disabled={codePending || countdown > 0}
                   >
                     {codePending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <>
+                        <Loader2
+                          className="mr-1.5 h-4 w-4 animate-spin motion-reduce:animate-none"
+                          aria-hidden="true"
+                        />
+                        发送中…
+                      </>
                     ) : countdown > 0 ? (
                       `${countdown}秒`
                     ) : (
@@ -312,48 +454,81 @@ export function AuthRegisterPanel({
                     )}
                   </Button>
                 </div>
+                {renderFieldError('phone')}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="auth-register-code">验证码</Label>
-                <Input
-                  id="auth-register-code"
-                  name="code"
-                  className="bg-background/80 backdrop-blur"
-                  placeholder="请输入验证码"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                />
+                <Label htmlFor={fieldIds.code}>验证码</Label>
+                <div className="relative">
+                  <AuthInputIcon>
+                    <ShieldCheck className="h-4 w-4" />
+                  </AuthInputIcon>
+                  <Input
+                    id={fieldIds.code}
+                    name="code"
+                    className="bg-background/80 pl-9 backdrop-blur"
+                    placeholder="例如：123456…"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    spellCheck={false}
+                    aria-invalid={localErrorField === 'code'}
+                    aria-describedby={
+                      localErrorField === 'code' ? errorIds.code : undefined
+                    }
+                    onChange={() => clearFieldError('code')}
+                    required
+                  />
+                </div>
+                {renderFieldError('code')}
               </div>
             </>
           )}
 
           {requireTermsAccepted && (
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                checked={termsAccepted}
-                onChange={(event) => setTermsAccepted(event.target.checked)}
-              />
-              <span>{termsLabel}</span>
-            </label>
+            <div className="space-y-2">
+              <label
+                className="flex min-h-10 touch-manipulation items-start gap-2 rounded-md py-2 text-sm text-muted-foreground focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background"
+                htmlFor={fieldIds.termsAccepted}
+              >
+                <input
+                  id={fieldIds.termsAccepted}
+                  name="termsAccepted"
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-input focus-visible:outline-none"
+                  checked={termsAccepted}
+                  aria-invalid={localErrorField === 'termsAccepted'}
+                  aria-describedby={
+                    localErrorField === 'termsAccepted'
+                      ? errorIds.termsAccepted
+                      : undefined
+                  }
+                  onChange={(event) => {
+                    setTermsAccepted(event.target.checked);
+                    clearFieldError('termsAccepted');
+                  }}
+                />
+                <span className="min-w-0 break-words">{termsLabel}</span>
+              </label>
+              {renderFieldError('termsAccepted')}
+            </div>
           )}
 
           <Button
             type="submit"
-            className="mt-4 h-11 w-full"
+            className="mt-4 h-11 w-full touch-manipulation"
             disabled={registerPending}
           >
             {registerPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                注册中...
+                <Loader2
+                  className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
+                  aria-hidden="true"
+                />
+                注册中…
               </>
             ) : (
               <>
                 创建账号
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </>
             )}
           </Button>
@@ -361,12 +536,12 @@ export function AuthRegisterPanel({
       </form>
 
       {extraActions && <div className="mt-5">{extraActions}</div>}
-      {displayedError && (
+      {displayedFormError && (
         <div
-          className="mt-4 border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          className="mt-4 break-words border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm text-destructive"
           aria-live="polite"
         >
-          {displayedError}
+          {displayedFormError}
         </div>
       )}
       {footer && (

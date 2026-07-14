@@ -1826,9 +1826,6 @@ export default function App() {
                           intervalMs={5200}
                         />
                       }
-                      overlay={
-                        <div className="absolute inset-0 z-10 bg-slate-950/35" />
-                      }
                       contentClassName="min-h-[680px]"
                     >
                       <AuthPanel

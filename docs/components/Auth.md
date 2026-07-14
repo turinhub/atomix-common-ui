@@ -3,6 +3,10 @@
 `AuthPageShell`、`AuthPanel`、`AuthLoginPanel` 和 `AuthRegisterPanel`
 提供一套可组合的认证界面。组件只负责 UI、表单状态、轻量校验和验证码倒计时；登录、注册、Token、跳转和提示消息由业务侧回调处理。
 
+认证组件默认使用 `background`、`foreground`、`primary`、`muted`、`border`
+等语义 token，不固化业务品牌色。消费方可通过现有 `className`、视觉插槽和
+`brandIcon` 建立自己的产品识别。
+
 ## UI Adapter
 
 ```tsx
@@ -48,6 +52,11 @@ import { AuthLoginPanel } from '@turinhub/atomix-common-ui/auth';
 />;
 ```
 
+登录和注册表单会为每个实例生成独立控件 ID。校验失败时，错误会显示在对应字段附近，
+通过 `aria-describedby` 与输入框关联，并把焦点移到第一个需要修正的字段。异步错误仍在
+表单级错误区域展示并通过 `aria-live` 播报。用户名、密码、手机号和验证码输入框使用
+相同尺寸与占位的 Lucide 前缀图标，切换登录方式时不会改变文本起始位置。
+
 ## Register Panel
 
 ```tsx
@@ -71,7 +80,9 @@ import { AuthRegisterPanel } from '@turinhub/atomix-common-ui/auth';
 
 `AuthVisualCarousel` 是一个通用认证页背景轮播组件。它使用普通 `img`
 渲染图片，不依赖 Next.js，可以直接放进 `AuthPageShell` 的 `visual`
-插槽。
+插槽。轮播使用语义 token 生成内容遮罩，自动播放时提供暂停按钮；鼠标悬停、键盘焦点
+进入或系统开启 `prefers-reduced-motion` 时会暂停自动切换。窄屏下默认隐藏背景说明文字，
+避免与前景认证面板争抢阅读空间，轮播控制仍然保留。
 
 ```tsx
 import {
@@ -111,7 +122,7 @@ import { AuthPageShell, AuthPanel } from '@turinhub/atomix-common-ui/auth';
 
 <AuthPageShell
   visual={<ProductCarousel />}
-  overlay={<div className="absolute inset-0 z-10 bg-black/35" />}
+  overlay={<div className="absolute inset-0 z-10 bg-background/25" />}
 >
   <AuthPanel
     components={authUI}
@@ -130,6 +141,11 @@ import { AuthPageShell, AuthPanel } from '@turinhub/atomix-common-ui/auth';
   />
 </AuthPageShell>;
 ```
+
+`AuthPageShell` 使用动态视口高度并包含安全区 padding，内容高于视口时允许纵向滚动。
+未传入 `overlay` 时，组件使用不接收鼠标事件的默认视觉遮罩，因此背景轮播控件仍可操作。
+传入 `overlay` 后，节点会保持原有 DOM、鼠标、触控、键盘和辅助技术行为；需要覆盖视觉内容时，
+由该节点自行设置 `absolute inset-0 z-10`。纯视觉遮罩应优先使用默认实现。
 
 ## Tale-style Boundary
 

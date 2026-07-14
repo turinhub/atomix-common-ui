@@ -1,5 +1,6 @@
+import { Pause, Play } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { FocusEvent, KeyboardEvent, ReactNode } from 'react';
 
 import { cn } from '../lib/utils';
 
@@ -35,9 +36,14 @@ export function AuthVisualCarousel({
   ariaLabel = '认证页视觉轮播',
 }: AuthVisualCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+  const [isInteractionPaused, setIsInteractionPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const hasItems = items.length > 0;
   const currentItem = hasItems ? items[currentSlide] : undefined;
+  const canAutoplay = intervalMs > 0 && items.length > 1;
+  const isAutoplayPaused =
+    isManuallyPaused || isInteractionPaused || prefersReducedMotion;
 
   const goToSlide = (index: number) => {
     if (!hasItems) return;
@@ -48,14 +54,37 @@ export function AuthVisualCarousel({
   const previousSlide = () => goToSlide(currentSlide - 1);
 
   useEffect(() => {
-    if (!hasItems || isPaused || intervalMs <= 0 || items.length < 2) return;
+    if (!hasItems || !canAutoplay || isAutoplayPaused) return;
     const timer = setTimeout(() => {
       setCurrentSlide((slide) => (slide + 1) % items.length);
     }, intervalMs);
     return () => clearTimeout(timer);
-  }, [hasItems, intervalMs, isPaused, items.length, currentSlide]);
+  }, [
+    canAutoplay,
+    hasItems,
+    intervalMs,
+    isAutoplayPaused,
+    items.length,
+    currentSlide,
+  ]);
+
+  useEffect(() => {
+    if (currentSlide >= items.length && items.length > 0) {
+      setCurrentSlide(items.length - 1);
+    }
+  }, [currentSlide, items.length]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener?.('change', updatePreference);
+    return () => mediaQuery.removeEventListener?.('change', updatePreference);
+  }, []);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
       previousSlide();
@@ -66,11 +95,17 @@ export function AuthVisualCarousel({
     }
   };
 
+  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsInteractionPaused(false);
+    }
+  };
+
   if (!hasItems) {
     return (
       <div
         className={cn(
-          'relative h-full min-h-[360px] w-full overflow-hidden bg-slate-950',
+          'relative h-full min-h-[360px] w-full overflow-hidden bg-background',
           className
         )}
         aria-label={ariaLabel}
@@ -82,23 +117,24 @@ export function AuthVisualCarousel({
   return (
     <div
       className={cn(
-        'relative h-full min-h-[360px] w-full overflow-hidden bg-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
+        'relative h-full min-h-[360px] w-full overflow-hidden bg-background text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className
       )}
       tabIndex={0}
       aria-label={ariaLabel}
       role="region"
+      aria-roledescription="轮播"
       onKeyDown={handleKeyDown}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      onMouseEnter={() => setIsInteractionPaused(true)}
+      onMouseLeave={() => setIsInteractionPaused(false)}
+      onFocusCapture={() => setIsInteractionPaused(true)}
+      onBlurCapture={handleBlur}
     >
       {items.map((item, index) => (
         <img
           key={`${item.image}-${index}`}
           src={item.image}
-          alt={item.alt}
+          alt={index === currentSlide ? item.alt : ''}
           width={item.width ?? 1600}
           height={item.height ?? 900}
           fetchPriority={index === currentSlide ? 'high' : 'auto'}
@@ -113,63 +149,99 @@ export function AuthVisualCarousel({
         />
       ))}
 
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/30 to-slate-950/10" />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent pb-16 pt-24" />
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(to_right,rgba(255,255,255,0.32)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.26)_1px,transparent_1px)] [background-size:44px_44px]"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/55 to-background/15"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/45 to-transparent pb-16 pt-24"
         aria-hidden="true"
       />
 
-      {(showText || showIndicators) && (
+      {(showText ||
+        showIndicators ||
+        (canAutoplay && !prefersReducedMotion)) && (
         <div
           className={cn(
-            'absolute inset-x-5 bottom-6 text-white sm:inset-x-8 sm:bottom-8 lg:inset-x-12 lg:bottom-10',
+            'absolute inset-x-5 bottom-6 min-w-0 text-foreground sm:inset-x-8 sm:bottom-8 lg:inset-x-12 lg:bottom-10',
             contentClassName
           )}
         >
           {showText && currentItem && (
-            <div className="max-w-[min(28rem,calc(100vw-2.5rem))]">
+            <div
+              className="hidden min-w-0 max-w-[min(28rem,calc(100vw-2.5rem))] sm:block"
+              aria-live={isAutoplayPaused ? 'polite' : 'off'}
+              aria-atomic="true"
+            >
               {currentItem.eyebrow && (
-                <p className="mb-2 text-[0.68rem] font-medium uppercase tracking-normal text-cyan-100/80 sm:text-xs">
+                <p className="mb-2 break-words text-xs font-medium text-primary">
                   {currentItem.eyebrow}
                 </p>
               )}
               {currentItem.title && (
-                <h2 className="text-balance text-xl font-semibold leading-tight sm:text-2xl lg:text-3xl">
+                <h2 className="text-balance break-words text-xl font-semibold leading-tight sm:text-2xl lg:text-3xl">
                   {currentItem.title}
                 </h2>
               )}
               {currentItem.description && (
-                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-100/80 sm:text-base">
+                <p className="mt-2 line-clamp-3 break-words text-sm leading-6 text-muted-foreground sm:text-base">
                   {currentItem.description}
                 </p>
               )}
             </div>
           )}
 
-          {showIndicators && items.length > 1 && (
-            <div className="mt-5 flex items-center gap-2">
-              {items.map((item, index) => (
-                <button
-                  key={`${item.image}-indicator-${index}`}
-                  type="button"
-                  className={cn(
-                    'h-1.5 rounded-full transition-[background-color,width] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none',
-                    index === currentSlide
-                      ? 'w-8 bg-white'
-                      : 'w-3 bg-white/40 hover:bg-white/70'
-                  )}
-                  aria-label={`切换到第 ${index + 1} 张轮播图`}
-                  aria-current={index === currentSlide}
-                  onClick={() => goToSlide(index)}
-                />
-              ))}
-            </div>
-          )}
+          {(showIndicators || (canAutoplay && !prefersReducedMotion)) &&
+            items.length > 1 && (
+              <div
+                className="mt-4 flex min-w-0 items-center gap-1"
+                role="group"
+                aria-label="轮播控制"
+              >
+                {canAutoplay && !prefersReducedMotion && (
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={
+                      isManuallyPaused ? '继续自动播放' : '暂停自动播放'
+                    }
+                    aria-pressed={isManuallyPaused}
+                    onClick={() => setIsManuallyPaused((value) => !value)}
+                  >
+                    {isManuallyPaused ? (
+                      <Play className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Pause className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                )}
+
+                {showIndicators && (
+                  <div className="flex min-w-0 items-center gap-1">
+                    {items.map((item, index) => (
+                      <button
+                        key={`${item.image}-indicator-${index}`}
+                        type="button"
+                        className="group inline-flex h-10 min-w-10 touch-manipulation items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        aria-label={`切换到第 ${index + 1} 张轮播图`}
+                        aria-current={index === currentSlide}
+                        onClick={() => goToSlide(index)}
+                      >
+                        <span
+                          className={cn(
+                            'h-1.5 rounded-full transition-[background-color,width] duration-200 motion-reduce:transition-none',
+                            index === currentSlide
+                              ? 'w-8 bg-foreground'
+                              : 'w-3 bg-muted-foreground/45 group-hover:bg-muted-foreground/70'
+                          )}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       )}
     </div>

@@ -3,11 +3,12 @@ import {
   Layers3,
   Loader2,
   LockKeyhole,
-  MessageCircle,
+  Phone,
+  ShieldCheck,
   UserRound,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import type { FormEvent, MouseEvent, ReactNode } from 'react';
 
 import { cn } from '../lib/utils';
 import type {
@@ -20,8 +21,13 @@ import type {
   TabsTriggerComponent,
 } from '../types/component-types';
 
+import { AuthInputIcon } from './AuthInputIcon';
+
 export type AuthLoginMethod = 'password' | 'sms';
 export type AuthValidationResult = string | undefined | null;
+type AuthLoginErrorField = 'username' | 'password' | 'phone' | 'code';
+
+const defaultLoginMethods: AuthLoginMethod[] = ['password', 'sms'];
 
 export interface AuthUIComponents {
   Button: ButtonComponent;
@@ -105,7 +111,7 @@ export function AuthLoginPanel({
   description = '使用账号密码或手机号验证码进入系统',
   brandIcon,
   defaultMethod = 'password',
-  enabledMethods = ['password', 'sms'],
+  enabledMethods = defaultLoginMethods,
   error,
   extraActions,
   footer,
@@ -118,33 +124,54 @@ export function AuthLoginPanel({
   onSendSmsCode,
   onSmsLogin,
 }: AuthLoginPanelProps) {
+  const id = useId();
   const [activeMethod, setActiveMethod] = useState<AuthLoginMethod>(
-    enabledMethods.includes(defaultMethod) ? defaultMethod : enabledMethods[0]
+    enabledMethods.includes(defaultMethod)
+      ? defaultMethod
+      : (enabledMethods[0] ?? 'password')
   );
   const [phone, setPhone] = useState('');
   const [smsId, setSmsId] = useState<string | undefined>();
   const [smsType, setSmsType] = useState<string | undefined>();
   const [localError, setLocalError] = useState<ReactNode>();
+  const [localErrorField, setLocalErrorField] = useState<AuthLoginErrorField>();
   const [passwordPending, setPasswordPending] = useState(false);
   const [smsPending, setSmsPending] = useState(false);
   const [codePending, setCodePending] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const methods = useMemo(
-    () =>
-      enabledMethods.filter(
-        (method, index, array) => array.indexOf(method) === index
-      ),
-    [enabledMethods]
-  );
+  const methods = useMemo<AuthLoginMethod[]>(() => {
+    const uniqueMethods = enabledMethods.filter(
+      (method, index, array) => array.indexOf(method) === index
+    );
+    return uniqueMethods.length ? uniqueMethods : ['password'];
+  }, [enabledMethods]);
   const shouldShowTabs = methods.length > 1;
-  const displayedError = localError || error;
+  const displayedFormError = localErrorField ? undefined : localError || error;
+  const fieldIds = {
+    username: `${id}-username`,
+    password: `${id}-password`,
+    phone: `${id}-phone`,
+    code: `${id}-code`,
+  } satisfies Record<AuthLoginErrorField, string>;
+  const errorIds = {
+    username: `${id}-username-error`,
+    password: `${id}-password-error`,
+    phone: `${id}-phone-error`,
+    code: `${id}-code-error`,
+  } satisfies Record<AuthLoginErrorField, string>;
 
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setTimeout(() => setCountdown((value) => value - 1), 1000);
     return () => clearTimeout(timer);
   }, [countdown]);
+
+  useEffect(() => {
+    if (!methods.includes(activeMethod)) {
+      setActiveMethod(methods[0]);
+    }
+  }, [activeMethod, methods]);
 
   if (!components) {
     return (
@@ -157,6 +184,44 @@ export function AuthLoginPanel({
   const { Button, Input, Label, Tabs, TabsList, TabsTrigger, TabsContent } =
     components;
 
+  const clearLocalError = () => {
+    setLocalError(undefined);
+    setLocalErrorField(undefined);
+  };
+
+  const focusField = (
+    form: HTMLFormElement | null,
+    field: AuthLoginErrorField
+  ) => {
+    const element = form?.elements.namedItem(field);
+    if (element instanceof HTMLElement) element.focus();
+  };
+
+  const showFieldError = (
+    message: ReactNode,
+    field: AuthLoginErrorField,
+    form: HTMLFormElement | null
+  ) => {
+    setLocalError(message);
+    setLocalErrorField(field);
+    focusField(form, field);
+  };
+
+  const clearFieldError = (field: AuthLoginErrorField) => {
+    if (localErrorField === field) clearLocalError();
+  };
+
+  const renderFieldError = (field: AuthLoginErrorField) =>
+    localErrorField === field && localError ? (
+      <p
+        id={errorIds[field]}
+        className="break-words text-sm text-destructive"
+        aria-live="polite"
+      >
+        {localError}
+      </p>
+    ) : null;
+
   const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -165,42 +230,49 @@ export function AuthLoginPanel({
       password: String(formData.get('password') || ''),
     };
 
-    const validationError =
-      !payload.username || !payload.password
-        ? '请输入账号和密码'
-        : validatePassword?.(payload);
+    if (!payload.username) {
+      showFieldError('请输入用户名', 'username', event.currentTarget);
+      return;
+    }
+    if (!payload.password) {
+      showFieldError('请输入密码', 'password', event.currentTarget);
+      return;
+    }
+    const validationError = validatePassword?.(payload);
     if (validationError) {
-      setLocalError(validationError);
+      showFieldError(validationError, 'password', event.currentTarget);
       return;
     }
 
     try {
       setPasswordPending(true);
-      setLocalError(undefined);
+      clearLocalError();
       await onPasswordLogin?.(payload);
     } catch (err) {
-      setLocalError(getErrorMessage(err, '登录失败，请稍后重试'));
+      setLocalError(getErrorMessage(err, '登录失败，请检查账号和密码后重试'));
+      setLocalErrorField(undefined);
     } finally {
       setPasswordPending(false);
     }
   };
 
-  const handleSendCode = async () => {
+  const handleSendCode = async (event: MouseEvent<HTMLButtonElement>) => {
     const validationError = validatePhone(phone);
     if (validationError) {
-      setLocalError(validationError);
+      showFieldError(validationError, 'phone', event.currentTarget.form);
       return;
     }
 
     try {
       setCodePending(true);
-      setLocalError(undefined);
+      clearLocalError();
       const result = await onSendSmsCode?.(phone);
       setSmsId(result?.smsId);
       setSmsType(result?.smsType);
       setCountdown(smsCountdownSeconds);
     } catch (err) {
       setLocalError(getErrorMessage(err, '发送验证码失败，请稍后重试'));
+      setLocalErrorField(undefined);
     } finally {
       setCodePending(false);
     }
@@ -208,25 +280,30 @@ export function AuthLoginPanel({
 
   const handleSmsSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const code = String(formData.get('code') || '').trim();
     const validationError = validatePhone(phone);
 
     if (validationError) {
-      setLocalError(validationError);
+      showFieldError(validationError, 'phone', form);
       return;
     }
     if (!code) {
-      setLocalError('请输入验证码');
+      showFieldError('请输入验证码', 'code', form);
       return;
     }
 
     try {
       setSmsPending(true);
-      setLocalError(undefined);
+      clearLocalError();
       await onSmsLogin?.({ phone, code, smsId, smsType });
     } catch (err) {
-      setLocalError(getErrorMessage(err, '验证码错误或已过期'));
+      showFieldError(
+        getErrorMessage(err, '验证码错误或已过期，请重新输入或获取新验证码'),
+        'code',
+        form
+      );
     } finally {
       setSmsPending(false);
     }
@@ -235,9 +312,9 @@ export function AuthLoginPanel({
   const renderHeader = () => (
     <div className="mb-7">
       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/10">
-        {brandIcon || <Layers3 className="h-5 w-5" />}
+        {brandIcon || <Layers3 className="h-5 w-5" aria-hidden="true" />}
       </div>
-      <h1 className="text-balance text-2xl font-semibold leading-tight">
+      <h1 className="text-balance break-words text-2xl font-semibold leading-tight">
         {title}
       </h1>
       {description && (
@@ -256,12 +333,15 @@ export function AuthLoginPanel({
             key={provider.id}
             type="button"
             variant="outline"
-            className="h-10 w-full"
+            className="h-10 w-full touch-manipulation"
             disabled={provider.disabled}
             onClick={provider.onClick}
           >
             {provider.icon && (
-              <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
+              <span
+                className="mr-2 inline-flex h-4 w-4 items-center justify-center"
+                aria-hidden="true"
+              >
                 {provider.icon}
               </span>
             )}
@@ -272,52 +352,76 @@ export function AuthLoginPanel({
     ) : null;
 
   const renderPasswordForm = () => (
-    <form className="flex flex-col" onSubmit={handlePasswordSubmit}>
+    <form
+      className="flex flex-col"
+      onSubmit={handlePasswordSubmit}
+      noValidate
+      aria-busy={passwordPending}
+    >
       <div className="flex flex-col gap-4">
         <div className="space-y-2">
-          <Label htmlFor="auth-username">用户名</Label>
+          <Label htmlFor={fieldIds.username}>用户名</Label>
           <div className="relative">
-            <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <AuthInputIcon>
+              <UserRound className="h-4 w-4" />
+            </AuthInputIcon>
             <Input
-              id="auth-username"
+              id={fieldIds.username}
               name="username"
               className="bg-background/80 pl-9 backdrop-blur"
-              placeholder="请输入用户名"
+              placeholder="请输入用户名…"
               autoComplete="username"
               spellCheck={false}
+              aria-invalid={localErrorField === 'username'}
+              aria-describedby={
+                localErrorField === 'username' ? errorIds.username : undefined
+              }
+              onChange={() => clearFieldError('username')}
               required
             />
           </div>
+          {renderFieldError('username')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="auth-password">密码</Label>
+          <Label htmlFor={fieldIds.password}>密码</Label>
           <div className="relative">
-            <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <AuthInputIcon>
+              <LockKeyhole className="h-4 w-4" />
+            </AuthInputIcon>
             <Input
-              id="auth-password"
+              id={fieldIds.password}
               name="password"
               className="bg-background/80 pl-9 backdrop-blur"
               type="password"
-              placeholder="请输入密码"
+              placeholder="请输入密码…"
               autoComplete="current-password"
+              aria-invalid={localErrorField === 'password'}
+              aria-describedby={
+                localErrorField === 'password' ? errorIds.password : undefined
+              }
+              onChange={() => clearFieldError('password')}
               required
             />
           </div>
+          {renderFieldError('password')}
         </div>
         <Button
           type="submit"
-          className="mt-4 h-11 w-full"
+          className="mt-4 h-11 w-full touch-manipulation"
           disabled={passwordPending}
         >
           {passwordPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              登录中...
+              <Loader2
+                className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+              登录中…
             </>
           ) : (
             <>
               登录
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </>
           )}
         </Button>
@@ -326,38 +430,57 @@ export function AuthLoginPanel({
   );
 
   const renderSmsForm = () => (
-    <form className="flex flex-col" onSubmit={handleSmsSubmit}>
+    <form
+      className="flex flex-col"
+      onSubmit={handleSmsSubmit}
+      noValidate
+      aria-busy={smsPending || codePending}
+    >
       <div className="flex flex-col gap-4">
         <div className="space-y-2">
-          <Label htmlFor="auth-phone">手机号</Label>
-          <div className="flex gap-2">
-            <div className="relative w-full">
-              <MessageCircle className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Label htmlFor={fieldIds.phone}>手机号</Label>
+          <div className="flex items-start gap-2">
+            <div className="relative min-w-0 flex-1">
+              <AuthInputIcon>
+                <Phone className="h-4 w-4" />
+              </AuthInputIcon>
               <Input
-                id="auth-phone"
+                id={fieldIds.phone}
                 name="phone"
                 className="bg-background/80 pl-9 backdrop-blur"
-                placeholder="请输入手机号"
+                type="tel"
+                placeholder="例如：138 0013 8000…"
                 value={formatPhone(phone)}
-                onChange={(event) =>
-                  setPhone(normalizePhone(event.target.value))
-                }
+                onChange={(event) => {
+                  setPhone(normalizePhone(event.target.value));
+                  clearFieldError('phone');
+                }}
                 required
                 maxLength={13}
                 inputMode="numeric"
                 autoComplete="tel"
                 spellCheck={false}
+                aria-invalid={localErrorField === 'phone'}
+                aria-describedby={
+                  localErrorField === 'phone' ? errorIds.phone : undefined
+                }
               />
             </div>
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-28 shrink-0 bg-background/70 backdrop-blur hover:bg-background/90"
+              className="h-10 w-28 shrink-0 touch-manipulation bg-background/70 px-2 tabular-nums backdrop-blur hover:bg-background/90"
               onClick={handleSendCode}
-              disabled={!phone || codePending || countdown > 0}
+              disabled={codePending || countdown > 0}
             >
               {codePending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <>
+                  <Loader2
+                    className="mr-1.5 h-4 w-4 animate-spin motion-reduce:animate-none"
+                    aria-hidden="true"
+                  />
+                  发送中…
+                </>
               ) : countdown > 0 ? (
                 `${countdown}秒`
               ) : (
@@ -365,33 +488,49 @@ export function AuthLoginPanel({
               )}
             </Button>
           </div>
+          {renderFieldError('phone')}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="auth-code">验证码</Label>
-          <Input
-            id="auth-code"
-            name="code"
-            className="bg-background/80 backdrop-blur"
-            placeholder="请输入验证码"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-          />
+          <Label htmlFor={fieldIds.code}>验证码</Label>
+          <div className="relative">
+            <AuthInputIcon>
+              <ShieldCheck className="h-4 w-4" />
+            </AuthInputIcon>
+            <Input
+              id={fieldIds.code}
+              name="code"
+              className="bg-background/80 pl-9 backdrop-blur"
+              placeholder="例如：123456…"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              spellCheck={false}
+              aria-invalid={localErrorField === 'code'}
+              aria-describedby={
+                localErrorField === 'code' ? errorIds.code : undefined
+              }
+              onChange={() => clearFieldError('code')}
+              required
+            />
+          </div>
+          {renderFieldError('code')}
         </div>
         <Button
           type="submit"
-          className="mt-4 h-11 w-full"
+          className="mt-4 h-11 w-full touch-manipulation"
           disabled={smsPending}
         >
           {smsPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              验证中...
+              <Loader2
+                className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+              验证中…
             </>
           ) : (
             <>
               验证并登录
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </>
           )}
         </Button>
@@ -407,15 +546,24 @@ export function AuthLoginPanel({
     return (
       <Tabs
         value={activeMethod}
-        onValueChange={(value) => setActiveMethod(value as AuthLoginMethod)}
+        onValueChange={(value) => {
+          if (value === 'password' || value === 'sms') {
+            setActiveMethod(value);
+            clearLocalError();
+          }
+        }}
         className="w-full"
       >
         <TabsList className="mb-6 grid h-11 w-full grid-cols-2 bg-background/60 backdrop-blur">
           {methods.includes('password') && (
-            <TabsTrigger value="password">账号密码登录</TabsTrigger>
+            <TabsTrigger value="password" className="touch-manipulation">
+              账号密码登录
+            </TabsTrigger>
           )}
           {methods.includes('sms') && (
-            <TabsTrigger value="sms">手机号登录</TabsTrigger>
+            <TabsTrigger value="sms" className="touch-manipulation">
+              手机号登录
+            </TabsTrigger>
           )}
         </TabsList>
         <TabsContent value="password">{renderPasswordForm()}</TabsContent>
@@ -427,7 +575,7 @@ export function AuthLoginPanel({
   return (
     <div
       className={cn(
-        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-white/45 bg-background/70 p-5 shadow-2xl shadow-slate-950/25 backdrop-blur-md supports-[backdrop-filter]:bg-background/55 md:p-8',
+        'w-full max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-background/90 p-5 shadow-xl backdrop-blur-md supports-[backdrop-filter]:bg-background/80 md:p-8',
         className
       )}
     >
@@ -435,12 +583,12 @@ export function AuthLoginPanel({
       {renderSocialProviders()}
       {renderForms()}
       {extraActions && <div className="mt-5">{extraActions}</div>}
-      {displayedError && (
+      {displayedFormError && (
         <div
-          className="mt-4 border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          className="mt-4 break-words border-l-2 border-destructive bg-destructive/5 px-4 py-3 text-sm text-destructive"
           aria-live="polite"
         >
-          {displayedError}
+          {displayedFormError}
         </div>
       )}
       {footer && (

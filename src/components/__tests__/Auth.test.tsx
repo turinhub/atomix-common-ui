@@ -78,6 +78,27 @@ describe('AuthLoginPanel', () => {
     expect(screen.getByText('手机号登录')).toBeInTheDocument();
   });
 
+  it('uses the same prefix icon layout for every login input', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <AuthLoginPanel components={createAuthComponents()} />
+    );
+
+    expect(
+      container.querySelectorAll('[data-slot="auth-input-icon"]')
+    ).toHaveLength(2);
+    expect(screen.getByLabelText('用户名')).toHaveClass('pl-9');
+    expect(screen.getByLabelText('密码')).toHaveClass('pl-9');
+
+    await user.click(screen.getByRole('button', { name: '手机号登录' }));
+
+    expect(
+      container.querySelectorAll('[data-slot="auth-input-icon"]')
+    ).toHaveLength(2);
+    expect(screen.getByLabelText('手机号')).toHaveClass('pl-9');
+    expect(screen.getByLabelText('验证码')).toHaveClass('pl-9');
+  });
+
   it('calls onPasswordLogin with username and password', async () => {
     const user = userEvent.setup();
     const onPasswordLogin = vi.fn();
@@ -101,6 +122,19 @@ describe('AuthLoginPanel', () => {
     );
   });
 
+  it('focuses and describes the first invalid password field', async () => {
+    const user = userEvent.setup();
+
+    render(<AuthLoginPanel components={createAuthComponents()} />);
+
+    await user.click(screen.getByRole('button', { name: /^登录$/ }));
+
+    const username = screen.getByLabelText('用户名');
+    expect(username).toHaveFocus();
+    expect(username).toHaveAttribute('aria-invalid', 'true');
+    expect(username).toHaveAccessibleDescription('请输入用户名');
+  });
+
   it('validates phone before sending code', async () => {
     const user = userEvent.setup();
     const onSendSmsCode = vi.fn();
@@ -119,6 +153,8 @@ describe('AuthLoginPanel', () => {
 
     expect(onSendSmsCode).not.toHaveBeenCalled();
     expect(screen.getByText('请输入正确的手机号')).toBeInTheDocument();
+    expect(screen.getByLabelText('手机号')).toHaveFocus();
+    expect(screen.getByLabelText('手机号')).toHaveAttribute('type', 'tel');
   });
 
   it('passes SMS metadata to onSmsLogin', async () => {
@@ -182,17 +218,31 @@ describe('AuthLoginPanel', () => {
       resolveLogin?.();
     });
   });
+
+  it('falls back to password login when enabledMethods is empty', () => {
+    render(
+      <AuthLoginPanel components={createAuthComponents()} enabledMethods={[]} />
+    );
+
+    expect(screen.getByLabelText('用户名')).toBeInTheDocument();
+    expect(screen.queryByText('手机号登录')).not.toBeInTheDocument();
+  });
 });
 
 describe('AuthRegisterPanel', () => {
   it('renders default register fields', () => {
-    render(<AuthRegisterPanel components={createAuthComponents()} />);
+    const { container } = render(
+      <AuthRegisterPanel components={createAuthComponents()} />
+    );
 
     expect(screen.getByLabelText('用户名')).toBeInTheDocument();
     expect(screen.getByLabelText('密码')).toBeInTheDocument();
     expect(screen.getByLabelText('确认密码')).toBeInTheDocument();
     expect(screen.getByLabelText('手机号')).toBeInTheDocument();
     expect(screen.getByLabelText('验证码')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('[data-slot="auth-input-icon"]')
+    ).toHaveLength(5);
   });
 
   it('blocks mismatched passwords before onRegister', async () => {
@@ -214,6 +264,10 @@ describe('AuthRegisterPanel', () => {
 
     expect(onRegister).not.toHaveBeenCalled();
     expect(screen.getByText('两次输入的密码不一致')).toBeInTheDocument();
+    expect(screen.getByLabelText('确认密码')).toHaveFocus();
+    expect(screen.getByLabelText('确认密码')).toHaveAccessibleDescription(
+      '两次输入的密码不一致'
+    );
   });
 
   it('passes SMS metadata to onRegister', async () => {
@@ -328,6 +382,45 @@ describe('AuthVisualCarousel', () => {
     expect(screen.getByText('第二张')).toBeInTheDocument();
   });
 
+  it('provides an explicit autoplay pause control', async () => {
+    const user = userEvent.setup();
+
+    render(<AuthVisualCarousel items={[...carouselItems]} />);
+
+    const pauseButton = screen.getByRole('button', { name: '暂停自动播放' });
+    expect(pauseButton).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(pauseButton);
+
+    expect(
+      screen.getByRole('button', { name: '继续自动播放' })
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('disables autoplay controls when reduced motion is preferred', async () => {
+    vi.mocked(window.matchMedia).mockImplementationOnce(
+      (query: string) =>
+        ({
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        }) as MediaQueryList
+    );
+
+    render(<AuthVisualCarousel items={[...carouselItems]} />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: '暂停自动播放' })
+      ).not.toBeInTheDocument()
+    );
+  });
+
   it('switches slide by keyboard arrows', () => {
     render(<AuthVisualCarousel items={[...carouselItems]} />);
 
@@ -368,19 +461,55 @@ describe('AuthVisualCarousel', () => {
 });
 
 describe('AuthPageShell', () => {
-  it('renders visual, overlay, and children', () => {
+  it('preserves interaction and accessibility for a custom overlay', async () => {
+    const user = userEvent.setup();
+    const onOverlayClick = vi.fn();
+
     render(
       <AuthPageShell
         visual={<div data-testid="visual">visual</div>}
-        overlay={<div data-testid="overlay">overlay</div>}
+        overlay={
+          <button type="button" onClick={onOverlayClick}>
+            overlay action
+          </button>
+        }
       >
         <div data-testid="children">children</div>
       </AuthPageShell>
     );
 
     expect(screen.getByTestId('visual')).toBeInTheDocument();
-    expect(screen.getByTestId('overlay')).toBeInTheDocument();
     expect(screen.getByTestId('children')).toBeInTheDocument();
+    const overlayAction = screen.getByRole('button', {
+      name: 'overlay action',
+    });
+    expect(overlayAction.closest('[aria-hidden="true"]')).toBeNull();
+    expect(overlayAction.parentElement).not.toHaveClass('pointer-events-none');
+    await user.click(overlayAction);
+    expect(onOverlayClick).toHaveBeenCalledOnce();
+    expect(
+      screen.getByTestId('children').parentElement?.parentElement
+    ).toHaveClass('[padding-top:max(1.5rem,env(safe-area-inset-top))]');
+    expect(
+      screen.getByTestId('children').parentElement?.parentElement
+    ).toHaveClass('pointer-events-none');
+    expect(screen.getByTestId('children').parentElement).toHaveClass(
+      'pointer-events-auto'
+    );
+  });
+
+  it('keeps only the default visual overlay non-interactive', () => {
+    const { container } = render(
+      <AuthPageShell>
+        <div>children</div>
+      </AuthPageShell>
+    );
+
+    const defaultOverlay = container.querySelector(
+      '[data-slot="auth-page-default-overlay"]'
+    );
+    expect(defaultOverlay).toHaveClass('pointer-events-none');
+    expect(defaultOverlay).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('renders AuthVisualCarousel in the visual slot', () => {

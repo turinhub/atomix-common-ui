@@ -22,6 +22,12 @@ pnpm test:run
 pnpm build
 ```
 
+## Design Review Skills
+
+- 认证、上传、阅读器等会直接影响业务操作体验的界面设计评审，使用 `frontend-design`：先明确目标用户与单一任务，审查视觉层级、信息结构、文案和动效是否服务该任务；组件库默认保持克制、可主题化，避免把某个业务产品的品牌视觉固化为默认实现。
+- 用户要求 UI / UX / 无障碍 / 设计规范 review 时，使用 `web-design-guidelines`，并在每次评审前获取最新规则；按 `file:line` 记录问题，覆盖语义、焦点、表单、动效、长内容、触控、暗色模式和安全区。
+- 使用上述 Skill 审查公开组件后，如发现会改变默认视觉或公开 API 的问题，应同步评估 `docs/components/`、测试和组件注入契约；仅做 review 时不擅自改变公开行为。
+
 ## 主要目录
 
 - `src/components`：业务组件与导出的组件实现

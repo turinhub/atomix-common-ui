@@ -52,7 +52,7 @@ export function AuthPanel({
           registerProps?.footer ?? (
             <button
               type="button"
-              className="text-primary underline-offset-4 hover:underline"
+              className="inline-flex min-h-10 touch-manipulation items-center rounded-sm px-1 text-primary underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => setMode('login')}
             >
               {loginLabel}
@@ -71,7 +71,7 @@ export function AuthPanel({
         loginProps?.footer ?? (
           <button
             type="button"
-            className="text-primary underline-offset-4 hover:underline"
+            className="inline-flex min-h-10 touch-manipulation items-center rounded-sm px-1 text-primary underline-offset-4 transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             onClick={() => setMode('register')}
           >
             {registerLabel}
